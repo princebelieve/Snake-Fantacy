@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Snake's Fantasy</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <div id="app">
+        <!-- Splash Screen -->
+        <div id="splash" class="screen active">
+            <div class="splash-content">
+                <div class="splash-logo">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="55" fill="#ff6b6b" opacity="0.2" />
+                        <circle cx="60" cy="60" r="45" fill="#ff6b6b" opacity="0.4" />
+                        <circle cx="60" cy="60" r="35" fill="#ff6b6b" opacity="0.6" />
+                        <path d="M40 50 L60 35 L80 50 L75 70 L60 80 L45 70 L40 50" fill="#ffd93d" stroke="#ff6b6b" stroke-width="2" />
+                        <circle cx="52" cy="52" r="3" fill="#1a1a2e" />
+                        <circle cx="68" cy="52" r="3" fill="#1a1a2e" />
+                        <path d="M55 60 Q60 65 65 60" stroke="#1a1a2e" stroke-width="2" fill="none" />
+                    </svg>
+                </div>
+                <h1 class="splash-title">Snake's Fantasy</h1>
+                <p class="splash-subtitle">By S. B. Ibhadode Technologies</p>
+                <div class="loader">
+                    <div class="loader-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="menu" class="screen">
+            <div class="menu-container">
+                <div class="menu-header">
+                    <h1>Snake's Fantasy</h1>
+                    <p class="version">v1.0.0</p>
+                </div>
+                <div class="menu-buttons">
+                    <button class="btn btn-primary" data-action="start">Start Game</button>
+                    <button class="btn btn-secondary" data-action="resume" style="display:none;">Resume</button>
+                    <button class="btn btn-secondary" data-action="levels">Levels</button>
+                    <button class="btn btn-secondary" data-action="settings">Settings</button>
+                </div>
+                <div class="menu-footer">
+                    <span>High Score: <strong id="menuHighScore">0</strong></span>
+                    <span>Level: <strong id="menuLevel">1</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game" class="screen">
+            <div class="game-header">
+                <div class="game-stats">
+                    <span>Score: <strong id="scoreDisplay">0</strong></span>
+                    <span>Level: <strong id="levelDisplay">1</strong></span>
+                    <span>High: <strong id="highDisplay">0</strong></span>
+                </div>
+                <div class="game-controls">
+                    <button class="btn-icon" id="pauseBtn">⏸</button>
+                </div>
+            </div>
+            <div class="game-wrapper">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+            <div class="game-footer">
+                <div class="touch-controls">
+                    <button class="touch-btn" data-dir="up">▲</button>
+                    <div class="touch-row">
+                        <button class="touch-btn" data-dir="left">◀</button>
+                        <button class="touch-btn" data-dir="down">▼</button>
+                        <button class="touch-btn" data-dir="right">▶</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="overlay" style="display:none;">
+            <div class="overlay-content">
+                <h2>Paused</h2>
+                <button class="btn btn-primary" id="resumeBtn">Resume</button>
+                <button class="btn btn-secondary" id="quitBtn">Quit</button>
+            </div>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="gameOverOverlay" class="overlay" style="display:none;">
+            <div class="overlay-content">
+                <h2>Game Over</h2>
+                <p>Score: <strong id="finalScore">0</strong></p>
+                <p>Best: <strong id="finalHigh">0</strong></p>
+                <button class="btn btn-primary" id="restartBtn">Play Again</button>
+                <button class="btn btn-secondary" id="menuBtn">Menu</button>
+            </div>
+        </div>
+
+        <!-- Victory Overlay -->
+        <div id="victoryOverlay" class="overlay" style="display:none;">
+            <div class="overlay-content">
+                <h2>🎉 Victory!</h2>
+                <p>Level Complete!</p>
+                <p>Score: <strong id="victoryScore">0</strong></p>
+                <button class="btn btn-primary" id="nextLevelBtn">Next Level</button>
+                <button class="btn btn-secondary" id="victoryMenuBtn">Menu</button>
+            </div>
+        </div>
+
+        <!-- Levels Screen -->
+        <div id="levelsScreen" class="screen">
+            <div class="levels-container">
+                <h2>Select Level</h2>
+                <div id="levelList" class="level-list"></div>
+                <button class="btn btn-secondary" data-action="backMenu">Back</button>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settingsScreen" class="screen">
+            <div class="settings-container">
+                <h2>Settings</h2>
+                <div class="setting-item">
+                    <label>Sound Effects</label>
+                    <div class="toggle" id="soundToggle">
+                        <span class="toggle-track">
+                            <span class="toggle-thumb"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Background Music</label>
+                    <div class="toggle" id="musicToggle">
+                        <span class="toggle-track">
+                            <span class="toggle-thumb"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label>Vibration</label>
+                    <div class="toggle" id="vibrationToggle">
+                        <span class="toggle-track">
+                            <span class="toggle-thumb"></span>
+                        </span>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" data-action="backMenu">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "./js/engine/": "./js/engine/",
+                "./js/entities/": "./js/entities/",
+                "./js/ui/": "./js/ui/",
+                "./js/audio/": "./js/audio/",
+                "./js/levels/": "./js/levels/",
+                "./js/storage/": "./js/storage/"
+            }
+        }
+    </script>
+    
+    <!-- Main App -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
