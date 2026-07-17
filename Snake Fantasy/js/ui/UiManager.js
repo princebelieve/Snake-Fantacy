@@ -241,7 +241,7 @@ export class UIManager {
         
         for (let i = 1; i <= total; i++) {
             const btn = document.createElement('button');
-            btn.className = 'level-btn';
+            btn.className = 'level-btn'; Pop
             const unlocked = this.levelManager.isLevelUnlocked(i);
             const current = i === this.app.currentLevel;
             
