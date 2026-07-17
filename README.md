@@ -1,2 +1,0 @@
-# Snake-Fantacy
-Snake Game
