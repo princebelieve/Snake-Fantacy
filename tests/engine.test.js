@@ -1,0 +1,304 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { GameEntity } from '../js/engine/Entity.js';
+import { GameScene } from '../js/engine/Scene.js';
+import { Input } from '../js/engine/Input.js';
+import { PhysicsBody, PhysicsWorld } from '../js/engine/PhysicsWorld.js';
+import { MovementController } from '../js/engine/MovementController.js';
+import { GameRuntime } from '../js/engine/GameRuntime.js';
+import { JsonConfigLoader } from '../js/engine/JsonConfigLoader.js';
+import { SaveStore } from '../js/engine/SaveStore.js';
+import { RandomGenerator } from '../js/engine/RandomGenerator.js';
+import { SnakeScene } from '../js/games/SnakeScene.js';
+import { CarRaceScene } from '../js/games/CarRaceScene.js';
+import { SkyShooterScene } from '../js/games/SkyShooterScene.js';
+import { LevelManager } from '../js/games/snake/LevelManager.js';
+import { ProgressManager } from '../js/games/snake/ProgressManager.js';
+import { GameManager } from '../js/games/snake/GameManager.js';
+
+const snakeLevel = {
+    id: 1, name: 'Test Trail', difficulty: 'Easy', stepMs: 100, targetFoods: 2,
+    start: { x: 5, y: 5 }, direction: 'right',
+    grid: { columns: 12, rows: 10, minimumTile: 12 },
+    foodTypes: [{ type: 'apple', points: 10, color: '#ff806b' }],
+    foods: [{ x: 7, y: 5, type: 'apple' }], obstacles: [], portals: []
+};
+
+function makeRuntime({ width = 800, height = 440, pressed = new Set() } = {}) {
+    return {
+        width,
+        height,
+        world: new PhysicsWorld(),
+        random: new RandomGenerator(1),
+        input: {
+            isDown: action => pressed.has(action),
+            wasPressed: action => pressed.has(action),
+            getAxis: name => name === 'move' ? Number(pressed.has('right')) - Number(pressed.has('left')) : 0
+        }
+    };
+}
+
+test('dynamic body lands on static floor and reports ground contact', () => {
+    const world = new PhysicsWorld({ gravityY: 900 });
+    const player = world.add(new PhysicsBody({ x: 5, y: 0, width: 10, height: 10 }));
+    world.add(new PhysicsBody({ x: 0, y: 40, width: 60, height: 10, type: 'static' }));
+
+    for (let i = 0; i < 120; i++) world.step(1 / 120);
+
+    assert.ok(Math.abs(player.position.y - 30) < 0.001);
+    assert.equal(player.contacts.bottom, true);
+    assert.equal(player.velocity.y, 0);
+});
+
+test('fast body cannot tunnel through a thin static wall', () => {
+    const world = new PhysicsWorld({ gravityY: 0 });
+    const body = world.add(new PhysicsBody({ x: 0, y: 0, width: 5, height: 8 }));
+    body.velocity.x = 2000;
+    world.add(new PhysicsBody({ x: 10, y: -10, width: 2, height: 30, type: 'static' }));
+    world.step(1 / 120);
+    assert.equal(body.position.x, 5);
+    assert.equal(body.velocity.x, 0);
+    assert.equal(body.contacts.right, true);
+});
+
+test('GameScene attaches and removes entity physics bodies through its lifecycle', () => {
+    const runtime = makeRuntime();
+    class SampleScene extends GameScene {
+        onEnter() {
+            this.actor = this.add(new GameEntity({ body: new PhysicsBody({ x: 12, y: 8 }) }));
+        }
+    }
+    const scene = new SampleScene();
+    scene.enter(runtime);
+    assert.equal(runtime.world.bodies.has(scene.actor.body), true);
+    assert.equal(scene.entities.has(scene.actor), true);
+
+    scene.exit(runtime);
+    assert.equal(runtime.world.bodies.has(scene.actor.body), false);
+    assert.equal(scene.entities.size, 0);
+});
+
+test('top down diagonal movement is normalized', () => {
+    const body = new PhysicsBody({ gravityScale: 0 });
+    const motor = new MovementController(body, { mode: 'topDown', maxSpeed: 300 });
+    const input = { getAxis: name => name === 'move' || name === 'moveY' ? 1 : 0, wasPressed: () => false };
+    motor.update(1, input);
+    assert.ok(Math.abs(Math.hypot(body.velocity.x, body.velocity.y) - 300) < 0.001);
+});
+
+test('SnakeScene advances a grid step through scene input and entity updates', () => {
+    const runtime = makeRuntime({ width: 600, height: 400 });
+    const scene = new SnakeScene(snakeLevel);
+    scene.enter(runtime);
+    const initialX = scene.snake[0].x;
+    scene.update(0.12, runtime);
+    assert.equal(scene.snake[0].x, initialX + 1);
+    assert.equal(scene.segmentEntities.length, 3);
+    assert.ok(scene.entities.size >= 4);
+});
+
+test('SnakeScene completes its configured food objective and reports victory', () => {
+    const runtime = makeRuntime({ width: 600, height: 400 });
+    let result = null;
+    const scene = new SnakeScene({ ...snakeLevel, targetFoods: 1 }, { onVictory: value => { result = value; } });
+    scene.enter(runtime);
+    scene.update(0.21, runtime);
+    assert.equal(scene.score, 10);
+    assert.equal(scene.completed, true);
+    assert.equal(result.foodsCollected, 1);
+    assert.equal(scene.snake.length, 4);
+});
+
+test('CarRaceScene responds to throttle and creates track collision bodies', () => {
+    const runtime = makeRuntime({ pressed: new Set(['accelerate']) });
+    const scene = new CarRaceScene();
+    scene.enter(runtime);
+    scene.update(0.1, runtime);
+    assert.ok(scene.speed > 0);
+    assert.ok(scene.barriers.length >= 8);
+    assert.equal(runtime.world.bodies.has(scene.car.body), true);
+});
+
+test('SkyShooterScene fires and awards score for projectile overlap', () => {
+    const runtime = makeRuntime({ pressed: new Set(['fire']) });
+    const scene = new SkyShooterScene();
+    scene.enter(runtime);
+    scene.update(1 / 120, runtime);
+    const bullet = [...scene.bullets][0];
+    const enemy = [...scene.enemies][0];
+    assert.ok(bullet);
+    bullet.body.position.copy(enemy.body.position);
+    scene.update(1 / 120, runtime);
+    assert.equal(scene.score, 100);
+    assert.equal(scene.bullets.size, 0);
+});
+
+test('data-driven Snake levels validate and load without code changes', async () => {
+    const file = new URL('../data/snake/levels.json', import.meta.url);
+    const data = JSON.parse(await readFile(file, 'utf8'));
+    assert.deepEqual(LevelManager.validate(data), []);
+    const invalid = structuredClone(data);
+    invalid.levels[0].foods[0].x = 90;
+    assert.ok(LevelManager.validate(invalid).some(error => error.includes('out-of-grid')));
+    const loader = new JsonConfigLoader({ fetcher: async () => ({ ok: true, json: async () => data }) });
+    const manager = await new LevelManager(loader, 'memory://levels').initialize();
+    assert.equal(manager.getTotalLevels(), 5);
+    assert.equal(manager.getLevel(5).portals.length, 2);
+    assert.throws(() => manager.getLevel(6), RangeError);
+});
+
+test('versioned SaveStore persists progress and ProgressManager unlocks levels', () => {
+    const values = new Map();
+    const storage = {
+        getItem: key => values.get(key) ?? null,
+        setItem: (key, value) => values.set(key, value),
+        removeItem: key => values.delete(key)
+    };
+    const store = new SaveStore('test-progress', { storage });
+    const progress = new ProgressManager(store, 5).initialize();
+    progress.recordScore(1, 50);
+    progress.completeLevel(1, 80);
+    const restored = new ProgressManager(new SaveStore('test-progress', { storage }), 5).initialize();
+    assert.equal(restored.getBestScore(), 80);
+    assert.equal(restored.getUnlockedLevel(), 2);
+    assert.equal(restored.isUnlocked(2), true);
+});
+
+test('GameManager coordinates menu, play, pause, failure, retry, and level completion', async () => {
+    const previousWindow = globalThis.window;
+    globalThis.window = { addEventListener() {}, removeEventListener() {} };
+    const pressed = new Set();
+    const runtime = {
+        canvas: { addEventListener() {}, removeEventListener() {}, setPointerCapture() {} },
+        world: new PhysicsWorld(), random: new RandomGenerator(2),
+        input: {
+            bind() { return this; }, trigger() {}, clearVirtualState() {},
+            wasPressed: () => false, isDown: () => false, getAxis: () => 0, endFrame() {}
+        },
+        events: { on() {}, emit() {} }, running: false, paused: false, scene: null,
+        async setScene(scene) {
+            await this.scene?.exit?.(this);
+            this.world.clear();
+            this.scene = scene;
+            await scene.enter(this);
+        },
+        start() { this.running = true; this.paused = false; },
+        pause() { this.paused = true; },
+        resume() { this.paused = false; },
+        destroy() { this.scene?.exit?.(this); }
+    };
+    const screens = new Map([['game', { hidden: true }]]);
+    const ui = {
+        screens,
+        updateMenu() {}, renderLevels() {}, updateGame() {}, hideOverlays() {}, showOverlay() {},
+        showScreen(name) { screens.get('game').hidden = name !== 'game'; },
+        showGameOver() {}, showVictory() {}
+    };
+    const levelManager = {
+        async initialize() {}, getTotalLevels: () => 2, getLevel: id => ({ ...snakeLevel, id, name: `Trail ${id}` }), list: () => [snakeLevel, { ...snakeLevel, id: 2 }]
+    };
+    const storageValues = new Map();
+    const storage = { getItem: key => storageValues.get(key) ?? null, setItem: (key, value) => storageValues.set(key, value), removeItem: key => storageValues.delete(key) };
+    const progress = new ProgressManager(new SaveStore('manager-test', { storage }), 2);
+    const manager = new GameManager({ runtime, levelManager, progressManager: progress, ui });
+
+    await manager.initialize();
+    await manager.handleAction('start');
+    assert.equal(manager.state, 'playing');
+    manager.handleAction('pause');
+    assert.equal(manager.state, 'paused');
+    manager.handleAction('resume');
+    assert.equal(manager.state, 'playing');
+    runtime.scene.onScoreCallback(50, snakeLevel, 1);
+    runtime.scene.onGameOverCallback('Wall collision', 50);
+    assert.equal(manager.state, 'failed');
+    assert.equal(progress.getBestScore(), 50);
+    await manager.handleAction('restart');
+    runtime.scene.onVictoryCallback({ score: 80, level: snakeLevel });
+    assert.equal(manager.state, 'won');
+    assert.equal(progress.getUnlockedLevel(), 2);
+    await manager.handleAction('next-level');
+    assert.equal(manager.currentLevel, 2);
+    assert.equal(manager.state, 'playing');
+    manager.destroy();
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+});
+
+test('Input maps browser key codes to named actions and axes', () => {
+    const listeners = new Map();
+    const target = {
+        addEventListener: (type, listener) => listeners.set(type, listener),
+        removeEventListener: type => listeners.delete(type)
+    };
+    globalThis.window = { addEventListener() {}, removeEventListener() {} };
+    const input = new Input(target);
+    input.bind('jump', 'Space').bindAxis('move', 'ArrowLeft', 'ArrowRight');
+    listeners.get('keydown')({ code: 'Space' });
+    listeners.get('keydown')({ code: 'ArrowRight' });
+    assert.equal(input.wasPressed('jump'), true);
+    assert.equal(input.getAxis('move'), 1);
+    input.endFrame();
+    assert.equal(input.wasPressed('jump'), false);
+    input.setVirtualDown('raceAccelerate', true);
+    assert.equal(input.isDown('raceAccelerate'), true);
+    input.setVirtualDown('raceAccelerate', false);
+    assert.equal(input.isDown('raceAccelerate'), false);
+    listeners.get('keyup')({ code: 'ArrowRight' });
+    assert.equal(input.getAxis('move'), 0);
+    input.destroy();
+    delete globalThis.window;
+});
+
+test('GameRuntime advances fixed updates, renders, and replaces scenes cleanly', async () => {
+    const previous = {
+        window: globalThis.window,
+        ResizeObserver: globalThis.ResizeObserver,
+        requestAnimationFrame: globalThis.requestAnimationFrame,
+        cancelAnimationFrame: globalThis.cancelAnimationFrame
+    };
+    let animation;
+    const eventWindow = { devicePixelRatio: 1, addEventListener() {}, removeEventListener() {} };
+    const context = new Proxy({}, { get: (target, name) => target[name] || (() => {}), set: (target, name, value) => (target[name] = value, true) });
+    globalThis.window = eventWindow;
+    globalThis.ResizeObserver = class { observe() {} disconnect() {} };
+    globalThis.requestAnimationFrame = callback => (animation = callback, 1);
+    globalThis.cancelAnimationFrame = () => {};
+
+    const canvas = {
+        getContext: () => context,
+        getBoundingClientRect: () => ({ width: 800, height: 440 })
+    };
+    const runtime = new GameRuntime(canvas);
+    let updates = 0;
+    let renders = 0;
+    await runtime.setScene({ update: () => updates++, render: () => renders++ });
+    runtime.start();
+    animation(runtime.lastTime + runtime.fixedDelta * 2000 + 0.01);
+    assert.equal(updates, 2);
+    assert.equal(renders, 1);
+
+    const snake = await runtime.setScene(new SnakeScene(snakeLevel));
+    assert.equal(runtime.scene, snake);
+    assert.ok(snake.entities.size > 0);
+    runtime.render(0.5);
+    assert.equal(runtime.world.bodies.size, 0);
+
+    const race = await runtime.setScene(new CarRaceScene());
+    assert.ok(runtime.world.bodies.size > 0);
+    runtime.render(0.5);
+    assert.equal(runtime.scene, race);
+
+    const shooter = await runtime.setScene(new SkyShooterScene());
+    assert.ok(runtime.world.bodies.size >= 6);
+    runtime.render(0.5);
+    assert.equal(runtime.scene, shooter);
+
+    runtime.destroy();
+
+    for (const [name, value] of Object.entries(previous)) {
+        if (value === undefined) delete globalThis[name];
+        else globalThis[name] = value;
+    }
+});

@@ -1,0 +1,11 @@
+{
+    "name": "Snake Fantasy",
+    "short_name": "Snake Fantasy",
+    "description": "An offline first game built on a reusable browser 2D engine.",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#10151e",
+    "theme_color": "#10151e"
+}

@@ -1,0 +1,45 @@
+{
+  "game": "snake-fantasy",
+  "version": 1,
+  "grid": { "columns": 24, "rows": 16, "minimumTile": 12 },
+  "foodTypes": [
+    { "type": "apple", "points": 10, "color": "#ff806b" },
+    { "type": "berry", "points": 15, "color": "#df75b8" },
+    { "type": "golden", "points": 25, "color": "#f5cf66" }
+  ],
+  "levels": [
+    {
+      "id": 1, "name": "First Trail", "difficulty": "Easy", "stepMs": 155, "targetFoods": 5,
+      "start": { "x": 5, "y": 8 }, "direction": "right",
+      "foods": [{ "x": 10, "y": 8, "type": "apple" }], "obstacles": [], "portals": []
+    },
+    {
+      "id": 2, "name": "Garden Path", "difficulty": "Easy", "stepMs": 140, "targetFoods": 7,
+      "start": { "x": 4, "y": 8 }, "direction": "right",
+      "foods": [{ "x": 9, "y": 8, "type": "berry" }],
+      "obstacles": [{ "x": 14, "y": 3 }, { "x": 14, "y": 4 }, { "x": 14, "y": 5 }, { "x": 14, "y": 10 }, { "x": 14, "y": 11 }, { "x": 14, "y": 12 }],
+      "portals": []
+    },
+    {
+      "id": 3, "name": "Crosswind", "difficulty": "Steady", "stepMs": 125, "targetFoods": 8,
+      "start": { "x": 4, "y": 4 }, "direction": "right",
+      "foods": [{ "x": 10, "y": 4, "type": "apple" }],
+      "obstacles": [{ "x": 8, "y": 8 }, { "x": 9, "y": 8 }, { "x": 10, "y": 8 }, { "x": 13, "y": 8 }, { "x": 14, "y": 8 }, { "x": 15, "y": 8 }],
+      "portals": []
+    },
+    {
+      "id": 4, "name": "Stone Garden", "difficulty": "Tricky", "stepMs": 115, "targetFoods": 9,
+      "start": { "x": 3, "y": 3 }, "direction": "right",
+      "foods": [{ "x": 9, "y": 3, "type": "golden" }],
+      "obstacles": [{ "x": 7, "y": 6 }, { "x": 7, "y": 7 }, { "x": 7, "y": 8 }, { "x": 7, "y": 9 }, { "x": 12, "y": 6 }, { "x": 12, "y": 7 }, { "x": 12, "y": 8 }, { "x": 12, "y": 9 }, { "x": 17, "y": 6 }, { "x": 17, "y": 7 }, { "x": 17, "y": 8 }, { "x": 17, "y": 9 }],
+      "portals": []
+    },
+    {
+      "id": 5, "name": "Portal Run", "difficulty": "Brave", "stepMs": 105, "targetFoods": 10,
+      "start": { "x": 4, "y": 8 }, "direction": "right",
+      "foods": [{ "x": 10, "y": 8, "type": "berry" }],
+      "obstacles": [{ "x": 12, "y": 3 }, { "x": 12, "y": 4 }, { "x": 12, "y": 5 }, { "x": 12, "y": 10 }, { "x": 12, "y": 11 }, { "x": 12, "y": 12 }],
+      "portals": [{ "id": "north", "x": 2, "y": 2 }, { "id": "south", "x": 21, "y": 13 }]
+    }
+  ]
+}
