@@ -1,48 +1,42 @@
-# Snake Fantasy: game and engine plan
+# Amara's Fantacy: game and engine plan
+
+## Story
+
+David's efforts to bring their child home have led down endless paths without a result. Amara imagines herself as a river goddess with many forms. She takes serpent form to travel from the river source to the sea, awakening the Mist Weaver, Storm Heron, Moon Eel, and Sea Dragon powers on the way. At Victor's Tide Keep, she uses the sea's power to defeat him and bring her child home.
 
 ## Product direction
 
-Snake Fantasy is a complete browser game built on a reusable 2D engine. Snake is the first shipped game and the engine's first full consumer. The same engine services are intended for later game modules such as racing and shooting, while their gameplay rules and content remain separate.
-
-The project is browser-first and offline-first. It uses ES modules and Canvas, with no build step. Game data and code are cached by the service worker so a previously loaded game can continue offline.
+Amara's Fantacy is an offline-first browser game made with ES modules and Canvas. Snake is the playable form for the 50-chapter river journey. The engine is independent of the story and game rules, with later game modules able to use it without entering this game's menu.
 
 ## Snake game loop
 
-1. Open the game menu and continue from the highest unlocked level or choose an unlocked level.
-2. Steer with keyboard, touch swipes, or the on-screen direction pad.
-3. Collect the configured food target while avoiding walls, the snake, and level obstacles.
-4. Complete the level to save its best score and unlock the next one; retry or return to the menu after a collision.
+1. Continue the current chapter or choose an unlocked chapter from the journey map.
+2. Steer Amara's serpent with keyboard, swipe, or the direction pad.
+3. Eat regular fruit, which persists until eaten and grows the serpent. Every fifth regular fruit brings a timed special fruit worth 5× the fifth fruit's points; it gives no growth or objective progress, and missing it only forfeits the bonus points.
+4. Complete the chapter's regular-fruit objective, earn a score medal, and unlock the next chapter. Later chapters ask for more fruit and move the serpent faster.
+5. Reach the open sea, confront Victor, and reunite Amara with her child in the final chapter.
 
-Levels define the grid, start position and direction, movement interval, food target, initial food, obstacles, and optional paired portals. Level data is JSON and validated before it reaches gameplay code.
+Chapter data defines starting position and direction, speed, objective, fruit placement, visible rocks, and paired current gates. The level loader validates the complete campaign before play.
 
 ## Engine responsibilities
 
-The engine owns the fixed-step runtime, scene lifecycle, entities, named input, event delivery, physics bodies, collision queries, camera math, configuration loading, shared randomness, and versioned local storage. The game layer composes those services.
+The engine owns the fixed-step runtime, scene lifecycle, entities, named input, event delivery, physics bodies, collision queries, camera math, configuration loading, shared randomness, and versioned local storage. Game modules own game rules, content, scoring, and progression.
 
-The engine does not own Snake rules, level content, score policy, or progression. Snake's `GameManager` coordinates level flow, `LevelManager` reads and validates level definitions, `ProgressManager` records progress, and `GameUI` presents state and forwards player actions.
+Amara's `GameManager` coordinates chapter flow, `LevelManager` validates campaign content, `ProgressManager` records scores and unlocks, and `GameUI` presents state. `SnakeScene` owns grid movement, fruit rules, collision, and rendering.
 
 ## Current implementation
 
-- The browser opens into Snake Fantasy, with a menu, level selection, gameplay HUD, pause, retry, completion, and next-level flows.
-- Five levels live in `data/snake/levels.json`; level validation checks IDs, movement values, grid positions, start cells, food types, and portal placement.
-- Local progress uses the engine `SaveStore` and records total best score, per-level best scores, and the unlocked level.
-- `CarRaceScene` and `SkyShooterScene` remain isolated engine consumers used for engine-level validation. They are not part of the Snake game menu or claimed as finished games.
-- Automated checks cover runtime lifecycle, physics, input, level data, saving, Snake objectives, and the two secondary scene systems.
+- First run presents the developer/game brand boot screen, icon-only loading scene, game menu, level-specific story scene, and a guided first-level tutorial before normal play.
+- The game menu, chapter map, game HUD, pause, retry, chapter-completion, and final-story screens support the campaign loop.
+- Amara's portrait from Save The Baby is reused in the local serpent emblem and story scene.
+- Fifty chapters strictly increase both regular-food goals (6 to 67) and speed (157 ms to 90 ms per move).
+- The five story arcs name Amara's changing goddess forms as she travels toward the sea.
+- Special fruit appears after five regular fruit, lasts only for its configured window, gives 5× the fifth regular fruit's points, and has no effect on growth or chapter completion.
+- Local art, five WAV effects, keyboard and touch input, offline caching, and persistent scores and unlocks are included.
+- Car-racing and sky-shooter scenes remain isolated engine consumers; they are not presented as finished games.
 
-## Architecture rules
+## Next work
 
-- Keep generic runtime services in `js/engine/` and all game rules in `js/games/`.
-- Give every subsystem a narrow contract. Game flow coordinates systems; it does not implement their mechanics.
-- Keep level and tuning values in data files, and validate them at load time.
-- Keep UI responsible for presentation and player actions. It must not own snake movement, collisions, or progression rules.
-- Keep save serialization generic. Game-specific progress shape belongs to `ProgressManager`.
-- New games receive their own module and consume stable engine APIs; do not add game-specific branches to the runtime.
-- Require unit tests for engine contracts and playthrough checks for game flows before calling a feature complete.
-
-## Work stages
-
-1. **Engine base.** Fixed-step loop, input, scene/entity lifecycle, 2D physics, event bus, seeded random source, configuration loader, save store, documentation, and tests.
-2. **Snake release slice.** Five validated levels, food objectives, obstacles, portals, touch and keyboard controls, progression, local best scores, offline app shell, and menu/game lifecycle.
-3. **Browser/device hardening.** Test full playthroughs in supported browsers and touch devices; tune collision feel, responsive layout, offline update behavior, and accessibility.
-4. **New game modules.** Develop racing and shooting into actual games, with each game using engine contracts and owning its own content, UI, progression, and saves.
-5. **Shared content services.** Add reusable asset loading, audio, animation, and richer level authoring only when a game requires those contracts. Keep them independently tested and documented.
+1. Exercise all five chapter arcs in a browser at desktop and mobile sizes; verify rocks and portal gates are visually aligned with their collision cells.
+2. Tune level layouts and steering feel during real play, especially the faster late chapters.
+3. Build any later game as an independent engine consumer with its own product loop and content.

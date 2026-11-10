@@ -92,6 +92,9 @@ export class GameRuntime {
         this.canvas.height = Math.max(1, Math.round(rect.height * dpr));
         this.context.setTransform(dpr, 0, 0, dpr, 0, 0);
         this.scene?.resize?.(this.width, this.height, this);
+        // Resizing a canvas clears its bitmap. Repaint paused/static scenes immediately;
+        // otherwise the first frame can remain blank until the game loop starts.
+        if (!this.running || this.paused) this.render(0);
     }
 
     frame(now) {

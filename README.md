@@ -1,27 +1,31 @@
-# Snake Fantasy
+# Amara's Fantacy
 
-Snake Fantasy is an offline-first browser arcade game and the first complete game built on a reusable 2D engine. It is made with JavaScript ES modules and Canvas; it does not require Godot, a build tool, or a network connection after the first successful load.
+Amara's Fantacy is an offline-first Snake adventure built with JavaScript modules and Canvas. David's efforts have led down endless paths without bringing their child home. In her fantasy, Amara becomes a river goddess who can take many forms. She journeys downstream as a serpent to claim the sea's power, face Victor, and rescue her child.
 
 ## Play
 
-Serve the project over HTTPS or from `localhost`, then open the root page. Use arrow keys or W/A/S/D to turn. On touch devices, swipe on the board or use the direction pad. The menu provides level selection, saved best scores, retry, pause, and progression.
+Run `python -m http.server 8000` from the project root and open `http://localhost:8000`. After the first successful load, the service worker caches the game, chapters, artwork, and sound locally. Use arrow keys or W/A/S/D on desktop; swipe or use the direction pad on touch screens.
 
-## Architecture
+The first-run sequence is a short studio-brand splash, a logo loading screen, the game menu, the selected chapter's story, and then the board. Chapter 1 opens with a guided tutorial for the HUD, fruit, hazards, and controls. The Amara portrait from Save The Baby is reused in the river-serpent game emblem and story screen.
 
-- `js/engine/` contains the reusable runtime, scenes, entities, input, physics, events, random source, config loader, and save store.
-- `js/games/snake/` contains game flow, level loading/validation, and progression persistence.
-- `js/games/SnakeScene.js` contains Snake mechanics and board presentation.
-- `data/snake/levels.json` defines five levels outside the mechanics code.
-- `js/ui/GameUI.js` handles DOM presentation and forwards user actions to the game manager.
-- `service-worker.js` pre-caches the app shell and Snake level data for offline play.
-- `tests/engine.test.js` checks engine contracts and gameplay integration.
+Regular fruit remains until eaten and grows Amara's serpent. After every five regular fruit, a special fruit appears for a short time. It awards five times the points of the fifth regular fruit, but does not grow the serpent or count toward the chapter objective. If it expires, the only loss is those possible bonus points. Chapter goals and movement speed both rise through the 50-chapter journey.
 
-The car-racing and sky-shooter scene modules are separate engine consumers used to validate genre-specific movement and collision needs. Snake Fantasy is the only finished game in the app so far; those scenes need their own game design and complete player loops before release.
+## Game and engine structure
 
-## Run checks
+- `js/engine/` contains the reusable fixed-step runtime, scenes, entities, input, physics, events, random source, config loader, and save store.
+- `js/games/snake/` contains Amara's game flow, chapter loading and validation, saved progression, sprite loading, and audio.
+- `js/games/SnakeScene.js` contains movement, visible obstacle placement, collision, fruit, bonus timing, and board rendering.
+- `data/snake/levels.json` defines 50 chapters, five story arcs, goddess forms, rising food goals, speed, obstacles, and portal passages.
+- `assets/snake/` contains the serpent and food sprites plus Amara's portrait and coiled-serpent game icon; `assets/audio/` contains five local WAV sound effects.
+- `js/ui/GameUI.js` presents the journey map, objective HUD, pause, chapter results, and final story ending.
+- `tests/engine.test.js` checks engine contracts, chapter validation, rising difficulty, visible collision placement, bonus rules, and progression.
+
+The car-racing and sky-shooter scenes remain engine consumers for movement and collision coverage; they are not advertised as released games.
+
+## Checks
 
 ```sh
 node --experimental-default-type=module --test tests/engine.test.js
 ```
 
-Project direction is documented in [GAME_PLAN.md](GAME_PLAN.md), the engine contracts in [docs/ENGINE_API.md](docs/ENGINE_API.md), and the level file format in [docs/SNAKE_LEVEL_SCHEMA.md](docs/SNAKE_LEVEL_SCHEMA.md).
+See [GAME_PLAN.md](GAME_PLAN.md), [docs/ENGINE_API.md](docs/ENGINE_API.md), and [docs/SNAKE_LEVEL_SCHEMA.md](docs/SNAKE_LEVEL_SCHEMA.md).

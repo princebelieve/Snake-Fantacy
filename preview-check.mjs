@@ -1,0 +1,28 @@
+﻿import { writeFileSync } from 'node:fs';
+const pages=await (await fetch('http://127.0.0.1:9236/json/list')).json();
+const page=pages.find(p=>p.type==='page');
+const ws=new WebSocket(page.webSocketDebuggerUrl);
+await new Promise(r=>ws.addEventListener('open',r,{once:true}));
+let next=0;const pending=new Map();
+ws.addEventListener('message',e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(m.error):p.resolve(m.result)}});
+const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++next;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))});
+const evaluate=async expression=>(await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true})).result.value;
+await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+await call('Network.setBypassServiceWorker',{bypass:true});
+await call('Network.setCacheDisabled',{cacheDisabled:true});
+await call('Page.navigate',{url:'http://127.0.0.1:8016/'});
+for(let i=0;i<100;i++){if(await evaluate('window.amarasFantacy?.state === "menu"'))break;await new Promise(r=>setTimeout(r,200));}
+console.log('state',await evaluate('window.amarasFantacy?.state'));
+await new Promise(r=>setTimeout(r,500));
+writeFileSync('preview-mobile.png',Buffer.from((await call('Page.captureScreenshot',{format:'png'})).data,'base64'));
+await evaluate('window.amarasFantacy.playLevel(1, {tutorial:true}).then(()=>window.amarasFantacy.ui.hideTutorial())');
+await evaluate(`(() => { const app=window.amarasFantacy; const scene=app.runtime.scene; for(let i=0;i<4;i++){const h=scene.snake[0];const d=scene.direction==='down'?{x:0,y:1}:{x:1,y:0};scene.foodCell={x:h.x+d.x,y:h.y+d.y,type:'apple',points:10,color:'#ff806b',asset:'apple'};scene.stepSnake(app.runtime);} scene.spawnBonus(app.runtime);app.runtime.render(0);return {length:scene.snake.length,foods:scene.foodsCollected};})()`).then(result=>console.log('growth preview',result));
+await new Promise(r=>setTimeout(r,500));
+writeFileSync('preview-mobile-game.png',Buffer.from((await call('Page.captureScreenshot',{format:'png'})).data,'base64'));
+console.log(await evaluate('JSON.stringify({width:innerWidth,height:innerHeight,scroll:document.documentElement.scrollHeight,canvas:document.querySelector("canvas").getBoundingClientRect().toJSON()})'));
+await call('Emulation.setDeviceMetricsOverride',{width:1440,height:960,deviceScaleFactor:1,mobile:false});
+await evaluate('window.amarasFantacy.playLevel(1, {tutorial:true}).then(()=>window.amarasFantacy.ui.hideTutorial())');
+await new Promise(r=>setTimeout(r,500));
+writeFileSync('preview-game.png',Buffer.from((await call('Page.captureScreenshot',{format:'png'})).data,'base64'));
+console.log('assets', await evaluate('Object.keys(window.amarasFantacy.assets)'));
+ws.close();

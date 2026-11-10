@@ -1,0 +1,74 @@
+﻿/* The game stage: painted scenery, gilded controls, and a board-first HUD. */
+:root{--leaf:#efd487;--cream:#fff3cf;--night:#062d35;--line:#dabd6b60;--soft:#bed6cd}
+body{background:radial-gradient(ellipse at 48% 28%,#145663 0,#07323c 46%,#031b24 100%);font-family:'Trebuchet MS',system-ui,sans-serif}
+body:before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 12% 18%,#f8da7d80 0 1px,transparent 2px),radial-gradient(circle at 84% 34%,#a4eaff90 0 2px,transparent 3px),radial-gradient(circle at 68% 76%,#f8da7d70 0 1px,transparent 3px);background-size:330px 290px,510px 430px,390px 360px;opacity:.45}
+.app-shell{width:100%;max-width:1600px;padding:0 32px;min-height:600px}
+.app-shell:before,.app-shell:after{display:none}
+.site-header{position:absolute;inset:18px 28px auto;height:44px;border:0;z-index:12;pointer-events:none}.site-header button{pointer-events:auto}.brand{font-size:10px;opacity:.8}.brand img{width:32px;height:32px}.offline-state{display:none}.sound-toggle{border:1px solid #d8bf7855;border-radius:50%;width:44px;height:44px;padding:0;background:linear-gradient(#215662,#0a2c35);box-shadow:0 3px 0 #02171d, inset 0 0 0 3px #ffffff08;font-size:20px}.sound-toggle span{display:none}
+.app-shell[data-screen=game] .brand,.app-shell[data-screen=levels] .brand{visibility:hidden}
+.app-shell[data-screen=game] .site-header{inset:16px 15px auto auto}.app-shell[data-screen=game] .sound-toggle{width:34px;height:34px;font-size:16px}
+.screen{margin-top:76px}.screen.active{animation:stage-enter .35s ease-out}@keyframes stage-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.menu-screen{margin:0;overflow:visible;background:none;padding:60px 6% 35px;justify-content:flex-end;align-items:center;position:relative}
+.menu-screen:before{content:'';position:absolute;width:65%;height:80%;left:-10%;top:12%;border-radius:50%;background:radial-gradient(ellipse,#24a0a033,transparent 65%);pointer-events:none}
+.menu-copy{width:42%;max-width:500px;align-items:flex-start;text-align:left;position:static}
+.menu-logo{position:absolute;left:6%;top:5%;width:45%;height:90%;max-height:none;object-fit:contain;filter:drop-shadow(0 20px 30px #00192399);pointer-events:none}
+.menu-copy .eyebrow{font-size:11px;letter-spacing:.28em;color:#a4d7d8;margin:0 0 20px}
+.menu-copy h1{font-family:Georgia,serif;font-weight:normal;font-size:clamp(48px,6.5vw,92px);line-height:.98;letter-spacing:-.055em;margin:0 0 16px;text-shadow:0 3px 0 #001e28,0 8px 30px #0005}.menu-copy h1 span{color:#edce7a}
+.menu-tagline{color:#b8d8d8;line-height:1.7;font-size:14px;margin:0 0 30px}.menu-actions{width:min(330px,100%);gap:13px}
+.button{position:relative;border-radius:8px;min-height:54px;font-size:12px;letter-spacing:.13em;border:1px solid #f6dc94;box-shadow:0 4px 0 #573e1d,0 8px 20px #0004,inset 0 0 0 3px #ffffff20;transition:filter .15s,transform .15s}
+.button-primary{color:#443112;background:linear-gradient(#fff0b5,#e1b956 50%,#c89836);text-shadow:0 1px #fff7d5}.button-secondary{color:#f4dfab;border-color:#a88f55;background:linear-gradient(#214e54,#102f36);box-shadow:0 4px 0 #031c23,inset 0 0 0 3px #ffffff06}.button-secondary span{color:#b8d6d0;letter-spacing:0}.button:active{transform:translateY(3px);box-shadow:0 1px 0 #573e1d}.button:focus-visible,button:focus-visible{outline:3px solid #a7f2ff;outline-offset:5px}
+.record-card{margin-top:28px;color:#8eb7b7}.record-card strong{font-family:Georgia,serif;color:#ecd08a}.controls-copy{color:#8bb1b4;letter-spacing:.08em;font-size:8px}
+.story-screen{gap:6%;padding:20px 7% 40px}.story-art{border-radius:48% 48% 12px 12px;border-color:#cab16c;box-shadow:0 0 0 7px #0b3039,0 0 0 8px #c3a45a66,0 20px 70px #0008}.story-copy h1,.levels-top h1,.game-overlay h2{font-family:Georgia,serif;font-weight:normal;letter-spacing:-.04em}.story-narrative{color:#c4dcda}.story-promise{color:#edce7a;font-size:12px;line-height:1.6}.story-copy .eyebrow{color:#edce7a}
+.levels-screen{padding:0 5% 40px}.levels-top{flex-shrink:0}.levels-top h1{color:#f4dfa4}.level-grid{position:relative;grid-template-columns:repeat(5,minmax(0,1fr));gap:28px 24px;padding:20px 10px 35px;background:radial-gradient(ellipse at center,#4f9b8d22,transparent 70%)}
+.level-card{position:relative;align-items:center;text-align:center;justify-content:center;gap:8px;min-height:136px;border-radius:50% 50% 16px 16px;background:linear-gradient(#285653,#102e34);border:2px solid #ad965b;box-shadow:0 5px 0 #031d23,inset 0 0 0 4px #dbc67c12;transition:transform .15s}.level-card:nth-child(10n+6),.level-card:nth-child(10n+7),.level-card:nth-child(10n+8),.level-card:nth-child(10n+9),.level-card:nth-child(10n+10){transform:translateX(14px)}.level-card:disabled{opacity:.55;filter:saturate(.2);border-color:#5c7b74}.level-card:disabled:after{content:'SEALED';color:#8ba59e;font-size:8px;letter-spacing:.2em}.level-card:disabled small{display:none}.level-card .level-number{color:#f8d98b;font-size:11px}.level-card strong{font-family:Georgia,serif;font-weight:normal;font-size:16px}.level-card small{font-size:8px;color:#b6c9b8}.current-chapter{border-color:#ffe4a0;box-shadow:0 0 28px #f4d98033,inset 0 0 0 4px #dbc67c22}.map-count{color:#c6bd8d}
+.game-screen{margin-top:12px;padding:0 48px 8px;max-width:1120px;gap:0}.game-toolbar{margin-bottom:8px}.level-heading strong{font-family:Georgia,serif;font-size:20px;color:#f7e3a9;font-weight:normal}.level-heading small{color:#b9d4cb}.level-heading span{color:#94bbb3}.toolbar-button{border-radius:50%;border-color:#c5ac64;background:linear-gradient(#2e5552,#112f34);box-shadow:0 3px 0 #021c24,inset 0 0 0 3px #ffffff08;color:#f7dda2}
+.score-strip{width:min(760px,100%);border:1px solid #bca36766;border-radius:12px 12px 0 0;background:linear-gradient(#244641,#122e2c);padding:9px 10px;margin:0;box-shadow:inset 0 0 0 3px #ffffff04}.score-strip strong{font-family:Georgia,serif;font-size:23px;color:#ffe6a3}.score-strip small{color:#abc3b0;font-size:8px}.bonus-readout strong{font:10px Consolas,monospace;color:#b3edfb}
+.goal-ribbon{width:min(760px,100%);border-radius:0 0 8px 8px;border-color:#bca36744;background:#092a2b;color:#bdd1bd;margin-bottom:12px;font-size:10px}.goal-leaf{color:#f3cf72}
+.canvas-frame{width:100%;height:auto;min-height:0;max-height:calc(100svh - 235px);flex:1 1 0;aspect-ratio:1.5;border:12px solid #344437;border-radius:4px;outline:1px solid #84916a;background:#193d2d;box-shadow:0 0 0 3px #12271f,0 0 0 5px #8d93614d,0 18px 65px #0009,inset 0 0 30px #0009;border-image:url('../assets/art/stone-arena.jpg') 100 / 12px / 0 stretch}
+.mobile-controls{min-height:36px}.mobile-controls>span{position:static;color:#81a9a6}.touch-pad button{background:linear-gradient(#31554f,#143332);border-color:#a18c55;box-shadow:0 3px 0 #021b20;color:#f7dda2;border-radius:10px}
+.game-overlay{background:radial-gradient(ellipse at center,#194c4cee,#061e29f5);border:2px solid #b79b57;border-radius:8px;box-shadow:inset 0 0 0 5px #dfc4780d;gap:14px}.game-overlay h2{max-width:20ch}.overlay-emblem{color:#f3d179;border-color:#c8a65f;background:#a98e331a}.text-button{color:#c5d5c4}.result-line{color:#b7d1ca}.tutorial-card{background:linear-gradient(#234b45,#102f33);border-color:#d9bd79;border-radius:8px}.tutorial-card h2{font-family:Georgia,serif;font-weight:normal;color:#ffe4a1}.tutorial-overlay{background:#00151dbb}.launch-screen{position:fixed;background:radial-gradient(ellipse,#174a50,#041c27)}.boot-screen strong{font-family:Georgia,serif;color:#ecd087;font-weight:normal}.boot-screen p{color:#95c6c9}.loading-bar i{background:#edce7a}
+@media(min-width:761px) and (max-height:720px){.menu-logo{top:1%;height:98%}.menu-copy h1{font-size:58px}.menu-tagline{margin-bottom:20px}.menu-copy .eyebrow{margin-bottom:12px}.record-card{margin-top:16px}.game-screen{margin-top:8px}.game-toolbar{margin-bottom:4px}.score-strip{padding:5px}.goal-ribbon{margin-bottom:7px}.canvas-frame{max-height:calc(100svh - 210px)}}
+@media(max-width:760px){.app-shell{padding:0 14px;min-height:0;height:100svh}.site-header{inset:12px 14px auto}.brand span{display:none}.screen{margin-top:70px}.menu-screen{margin:0;min-height:650px;padding:0 6% 26px;align-items:flex-end;justify-content:center}.menu-copy{width:100%;align-items:center;text-align:center;max-width:390px}.menu-logo{top:22px;left:15%;width:70%;height:52%;max-height:none}.menu-copy h1{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.menu-copy .eyebrow{font-size:9px;margin:0 0 10px}.menu-tagline{font-size:12px;margin:0 0 17px}.menu-actions{gap:10px}.button{min-height:49px}.record-card{margin-top:18px}.controls-copy{font-size:7px;margin-top:10px}.story-screen{padding:15px 5% 25px;gap:22px}.story-art{width:180px;min-width:130px}.story-copy h1{font-size:32px}.story-narrative{font-size:13px}.story-copy .menu-actions{margin:auto}.levels-screen{padding:5px 3% 30px}.level-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 10px;padding:12px 0}.level-card{min-height:115px;padding:8px}.level-card strong{font-size:13px}.level-card:nth-child(n){transform:none}.level-card small{font-size:7px}.map-count{display:none}.game-screen{margin-top:12px;padding:0 0 8px}.app-shell[data-screen=game] .site-header{inset:auto 15px 22px auto}.level-heading strong{font-size:17px}.score-strip strong{font-size:19px}.bonus-readout strong{font-size:9px}.score-strip{padding:8px 2px}.score-strip small{font-size:7px}.goal-ribbon{font-size:9px;padding:5px 8px}.canvas-frame{flex:1 1 0;max-height:calc(100svh - 290px);min-height:180px;border-width:9px;border-image-width:9px}.touch-pad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,35px);gap:5px}.mobile-controls{flex-shrink:0;min-height:94px}.mobile-controls>span{position:absolute;left:0;top:18px;width:60px;line-height:1.6}.game-overlay{padding:18px 12px;gap:10px}.game-overlay h2{font-size:30px}.tutorial-card{padding:16px}.tutorial-actions .button{min-height:40px}.levels-top .eyebrow{font-size:8px}}
+@media(max-width:760px) and (max-height:720px){.menu-screen{min-height:570px}.menu-logo{height:48%;top:10px}.menu-tagline{display:none}.menu-copy .eyebrow{margin-bottom:14px}.record-card{margin-top:15px}.game-toolbar{margin-bottom:5px}.level-heading span{display:none}.canvas-frame{max-height:calc(100svh - 250px);min-height:120px}.score-strip{padding:5px 1px}.goal-ribbon{margin-bottom:8px}.mobile-controls{min-height:82px}.touch-pad{grid-template-rows:repeat(2,30px)}}
+@media(max-height:500px) and (orientation:landscape){.app-shell{min-height:0}.game-screen{padding:0 55px}.level-heading span,.mobile-controls>span{display:none}.game-toolbar{margin-bottom:3px}.score-strip{padding:3px}.score-strip strong{font-size:15px}.goal-ribbon{min-height:23px;margin-bottom:5px}.canvas-frame{max-height:none;min-height:80px}.mobile-controls{min-height:24px}.touch-pad{display:none}.menu-screen{min-height:0}.menu-logo{left:5%;width:43%;height:96%;top:2%}.menu-copy{width:44%;margin-left:auto;align-items:flex-start;text-align:left}.menu-copy .eyebrow{margin-top:70px}.record-card{margin-top:12px}.controls-copy{display:none}}
+/* Phone title screen uses the illustration as the stage, with controls below it. */
+@media(max-width:760px) and (orientation:portrait){
+ .app-shell{height:100dvh;padding:0 12px;overflow:hidden}
+ .menu-screen{min-height:0;height:100%;padding:52px 5% max(20px,env(safe-area-inset-bottom));margin:0;align-items:stretch}
+ .menu-copy{height:100%;max-width:420px;display:flex;align-items:center;margin:auto;width:100%}
+ .menu-logo{position:static;flex:1 1 0;min-height:0;height:0;max-height:none;width:100%;object-fit:contain;margin-bottom:16px}
+ .menu-copy .eyebrow,.menu-tagline,.menu-copy .controls-copy{display:none}
+ .menu-copy .menu-actions{width:100%;flex:0 0 auto;gap:13px}
+ .menu-copy .button{min-height:56px;font-size:13px}
+ .record-card{flex:0 0 auto;margin:18px 0 0;gap:12px}
+ .record-card strong{font-size:24px}
+ .story-screen,.levels-screen{overflow-y:auto}
+ .game-screen{justify-content:center}
+ .game-toolbar,.score-strip,.goal-ribbon{flex-shrink:0}
+ .canvas-frame{flex:0 0 auto;width:100%;height:auto;aspect-ratio:1.5;max-height:none;min-height:0;margin:6px 0 18px}
+ .mobile-controls{min-height:158px;flex:0 0 auto}
+ .touch-pad{grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,52px);gap:8px;margin:4px auto}
+ .touch-pad button{font-size:25px}
+ .mobile-controls>span{top:auto;bottom:0;left:0;right:0;width:auto;text-align:center;font-size:9px}
+ .app-shell[data-screen=game] .site-header{inset:auto 16px max(18px,env(safe-area-inset-bottom)) auto}
+ .tutorial-overlay{align-items:flex-end}
+}
+@media(max-width:760px) and (orientation:portrait) and (max-height:680px){
+ .menu-screen{padding-top:42px;padding-bottom:15px}.menu-logo{margin-bottom:10px}.menu-copy .button{min-height:48px}.record-card{margin-top:12px}
+ .canvas-frame{margin-bottom:8px}.mobile-controls{min-height:120px}.touch-pad{grid-template-columns:repeat(3,50px);grid-template-rows:repeat(2,42px);gap:6px}
+ .level-heading span{display:none}
+}
+/* The supplied forest arena surrounds the playable grid; painted foliage stays outside collisions. */
+.canvas-frame{border-image-source:url('../assets/references/forest-arena.jpg');border-image-slice:165;border-image-width:20px;border-width:20px;outline-color:#85754b;box-shadow:0 0 0 3px #172b20,0 0 0 4px #a78e4966,0 18px 65px #0009}
+.story-art{border-radius:18px;background:radial-gradient(ellipse,#346347,#0c302e);aspect-ratio:.85;overflow:hidden}
+.story-art img{object-fit:contain;object-position:center;transform:none;filter:none}
+.loading-screen img{width:min(65vw,320px);max-height:55svh;object-fit:contain;filter:drop-shadow(0 12px 30px #0007)}
+@media(max-width:760px) and (orientation:portrait){.canvas-frame{border-width:12px;border-image-width:12px}.story-art{width:190px;min-height:200px;flex-shrink:0}}
+@media(max-width:760px) and (orientation:portrait){
+ .game-screen{justify-content:flex-start;height:calc(100dvh - 16px);min-height:0}
+ .canvas-frame{flex:1 1 0;min-height:0;height:auto;max-height:none;aspect-ratio:2/3;margin:3px 0 10px}
+ .mobile-controls{min-height:138px}
+ .touch-pad{grid-template-rows:repeat(2,46px)}
+ .goal-ribbon{margin-bottom:7px}
+}
+@media(max-width:760px) and (orientation:portrait) and (max-height:680px){.mobile-controls{min-height:112px}.touch-pad{grid-template-rows:repeat(2,38px)}.score-strip strong{font-size:16px}.level-heading strong{font-size:15px}}

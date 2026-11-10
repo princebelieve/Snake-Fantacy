@@ -1,11 +1,19 @@
 {
-    "name": "Snake Fantasy",
-    "short_name": "Snake Fantasy",
-    "description": "An offline first game built on a reusable browser 2D engine.",
+    "name": "Amara's Fantacy",
+    "short_name": "Amara's",
+    "description": "An offline-first river goddess Snake adventure with 50 chapters.",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",
     "orientation": "any",
-    "background_color": "#10151e",
-    "theme_color": "#10151e"
+    "icons": [
+        {
+            "src": "./assets/amara_snake_transparent.png",
+            "sizes": "any",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "background_color": "#062d35",
+    "theme_color": "#062d35"
 }

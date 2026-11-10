@@ -1,6 +1,6 @@
 # Engine contracts
 
-This document defines the shared contracts consumed by Snake Fantasy and future game modules.
+This document defines the shared contracts consumed by Amara's Fantacy and future game modules.
 
 ## Runtime and scene ownership
 

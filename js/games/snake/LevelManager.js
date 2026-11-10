@@ -7,6 +7,8 @@ export class LevelManager {
         this.configUrl = configUrl;
         this.levels = new Map();
         this.foodTypes = [];
+        this.specialFruit = null;
+        this.story = null;
         this.grid = null;
     }
 
@@ -14,6 +16,8 @@ export class LevelManager {
         const config = await this.configLoader.load(this.configUrl, { validate: LevelManager.validate });
         this.grid = config.grid;
         this.foodTypes = config.foodTypes;
+        this.specialFruit = config.specialFruit;
+        this.story = config.story;
         this.levels = new Map(config.levels.map(level => [level.id, level]));
         return this;
     }
@@ -21,15 +25,17 @@ export class LevelManager {
     getLevel(id) {
         const level = this.levels.get(Number(id));
         if (!level) throw new RangeError(`Snake level ${id} does not exist`);
-        return { ...structuredClone(level), grid: this.grid, foodTypes: this.foodTypes };
+        return { ...structuredClone(level), grid: this.grid, foodTypes: this.foodTypes, specialFruit: this.specialFruit, storyArc: this.storyArcFor(level.id) };
     }
 
     getTotalLevels() { return this.levels.size; }
-    list() { return [...this.levels.values()].map(level => ({ ...level })); }
+    list() { return [...this.levels.values()].map(level => ({ ...level, storyArc: this.storyArcFor(level.id) })); }
+
+    storyArcFor(levelId) { return this.story?.arcs.find(arc => levelId >= arc.firstLevel && levelId <= arc.lastLevel) || null; }
 
     static validate(config) {
         const errors = [];
-        if (!config || config.game !== 'snake-fantasy' || !Number.isInteger(config.version)) return ['expected a versioned snake-fantasy config'];
+        if (!config || config.game !== 'amaras-fantacy' || !Number.isInteger(config.version)) return ['expected a versioned amara-fantacy config'];
         const { columns, rows } = config.grid || {};
         if (!Number.isInteger(columns) || columns < 12 || !Number.isInteger(rows) || rows < 10) errors.push('grid must be at least 12 by 10');
         if (!Array.isArray(config.foodTypes) || config.foodTypes.length === 0) errors.push('foodTypes must not be empty');
@@ -37,6 +43,11 @@ export class LevelManager {
             if (config.foodTypes.some(type => !type || !type.type || !Number.isFinite(type.points) || type.points < 1 || typeof type.color !== 'string')) errors.push('each foodType needs a type, positive points, and color');
             if (new Set(config.foodTypes.filter(Boolean).map(type => type.type)).size !== config.foodTypes.length) errors.push('foodTypes must have unique identifiers');
         }
+        if (!config.specialFruit || typeof config.specialFruit.type !== 'string' || typeof config.specialFruit.asset !== 'string' ||
+            config.specialFruit.afterRegularFoods !== 5 || config.specialFruit.multiplier !== 5 || !Number.isFinite(config.specialFruit.durationSeconds) || config.specialFruit.durationSeconds <= 0) {
+            errors.push('specialFruit must be a timed 5x pickup triggered after five regular fruits');
+        }
+        if (!config.story || typeof config.story.prologue !== 'string' || !Array.isArray(config.story.arcs) || config.story.arcs.length === 0 || !config.story.ending) errors.push('story needs a prologue, chapter arcs, and an ending');
         if (!Array.isArray(config.levels) || config.levels.length === 0) return [...errors, 'levels must not be empty'];
         const foodTypeList = Array.isArray(config.foodTypes) ? config.foodTypes.filter(Boolean) : [];
         const ids = new Set();
@@ -46,6 +57,8 @@ export class LevelManager {
             ids.add(level.id);
             if (!Number.isInteger(level.stepMs) || level.stepMs < 65 || level.stepMs > 500) errors.push(`level ${level.id} has an invalid stepMs`);
             if (!Number.isInteger(level.targetFoods) || level.targetFoods < 1) errors.push(`level ${level.id} needs a positive targetFoods`);
+            if (!Number.isFinite(level.targetScore) || level.targetScore < 0) errors.push(`level ${level.id} needs a non-negative targetScore`);
+            if (!Number.isFinite(level.specialDurationSeconds) || level.specialDurationSeconds <= 0) errors.push(`level ${level.id} needs a positive special-fruit timer`);
             if (!level.start || !Number.isInteger(level.start.x) || !Number.isInteger(level.start.y)) errors.push(`level ${level.id} has an invalid start`);
             if (!DIRECTIONS.has(level.direction)) errors.push(`level ${level.id} has an invalid direction`);
             for (const name of ['obstacles', 'foods', 'portals']) {
@@ -90,6 +103,23 @@ export class LevelManager {
             if (foodKeys.size !== foods.length) errors.push(`level ${level.id} has duplicate fixed food positions`);
         }
         for (let id = 1; id <= config.levels.length; id++) if (!ids.has(id)) errors.push(`levels must use consecutive ids beginning at 1; missing ${id}`);
+        const ordered = [...config.levels].filter(level => level && Number.isInteger(level.id)).sort((a, b) => a.id - b.id);
+        for (let index = 1; index < ordered.length; index++) {
+            const previous = ordered[index - 1], current = ordered[index];
+            if (current.id === previous.id + 1 && current.stepMs >= previous.stepMs) errors.push(`level ${current.id} must move faster than the prior level`);
+            if (current.id === previous.id + 1 && current.targetFoods <= previous.targetFoods) errors.push(`level ${current.id} must require more regular fruit than the prior level`);
+        }
+        const arcs = Array.isArray(config.story?.arcs) ? config.story.arcs : [];
+        const validArcs = [];
+        for (const arc of arcs) {
+            if (!arc || typeof arc !== 'object' || !Number.isInteger(arc.firstLevel) || !Number.isInteger(arc.lastLevel) || arc.firstLevel < 1 || arc.lastLevel < arc.firstLevel ||
+                typeof arc.name !== 'string' || typeof arc.form !== 'string' || typeof arc.power !== 'string' || typeof arc.story !== 'string') errors.push('each story arc needs a valid chapter range, name, form, power, and story');
+            else validArcs.push(arc);
+        }
+        for (let id = 1; id <= config.levels.length; id++) {
+            const matches = validArcs.filter(arc => id >= arc.firstLevel && id <= arc.lastLevel);
+            if (matches.length !== 1) errors.push(`chapter ${id} must belong to exactly one story arc`);
+        }
         return errors;
     }
 }

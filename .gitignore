@@ -1,0 +1,10 @@
+# Temporary browser profiles and local preview output
+.preview-*/
+preview-*.png
+preview-game.html
+
+# Local deployment settings and secrets
+.vercel/
+.env
+.env.*
+!.env.example
