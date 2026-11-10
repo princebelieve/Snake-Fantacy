@@ -80,5 +80,6 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
 .tutorial-actions .text-button{flex:0 0 auto;min-height:44px}
 .pause-button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1}
 .pause-button small{font:7px system-ui,sans-serif;letter-spacing:.04em}
+.app-shell[data-screen=game]{touch-action:none}
 .game-overlay{overflow-y:auto}
 @media(max-width:360px){.tutorial-actions{flex-direction:column;align-items:stretch}.tutorial-actions .button{flex:auto}.tutorial-actions .text-button{order:1}}

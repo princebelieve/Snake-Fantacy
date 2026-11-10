@@ -49,7 +49,7 @@ export class GameUI {
         const lessons = [
             { focus: ['.score-strip', '.goal-ribbon'], title: 'Read your river signs', body: 'OFFERINGS is the chapter goal; SCORE is your points; PERSONAL BEST is your record; SPECIAL FRUIT is its countdown. The ribbon tracks goal and leaf-score progress. Sound toggles effects, the left arrow opens the menu, and pause stops the run.' },
             { focus: ['.canvas-frame'], title: 'Follow the food', body: 'Guide Amara’s head to the red apple. Each apple, spirit fish, or water orb stays until you eat it, adds to your goal, and grows the serpent. The golden lightning spark is worth five times the last regular fruit’s points; missing it only loses those bonus points.' },
-            { focus: ['.canvas-frame', '.mobile-controls'], title: 'Steer clear of danger', body: 'Steer with one finger on the touchpad or two-finger swipes. Mouse movement, arrow keys, WASD, touch swipes, and the direction pad also work. The marked gray rocks, riverbank, and Amara’s own body end the run on contact. Plan wide turns before the serpent gets long.' }
+            { focus: ['.canvas-frame', '.mobile-controls'], title: 'Steer clear of danger', body: 'Steer with one finger on the touchpad or two-finger swipes. On phones, tap the top, bottom, left or right region, swipe anywhere, or use the direction pad. Mouse movement and arrow keys also work. The marked gray rocks, riverbank, and Amara’s own body end the run on contact. Plan wide turns before the serpent gets long.' }
         ];
         const lesson = lessons[stepIndex];
         for (const element of this.root.querySelectorAll('.tutorial-focus')) element.classList.remove('tutorial-focus');

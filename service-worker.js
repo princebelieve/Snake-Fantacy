@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = 'amara-fantacy-game-v27';
+const CACHE_NAME = 'amara-fantacy-game-v29';
 const APP_FILES = [
     './', './index.html', './manifest.json', './README.md', './GAME_PLAN.md',
     './docs/ENGINE_API.md', './docs/SNAKE_LEVEL_SCHEMA.md', './css/style.css', './css/game-stage.css',
@@ -31,7 +31,7 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
     // Fetch code together with the current HTML; never mix fresh markup with old modules.
-    if (/\.(?:js|css)$/.test(new URL(event.request.url).pathname)) {
+    if (/\.(?:js|css|json)$/.test(new URL(event.request.url).pathname)) {
         event.respondWith(fetch(new Request(event.request, { cache: 'no-cache' }))
             .then(async response => {
                 if (response.ok) {

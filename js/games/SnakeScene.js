@@ -124,8 +124,14 @@ export class SnakeScene extends GameScene {
         this.spawnBonus(runtime);
     }
 
-    requestTurn(direction) {
+    requestTurn(direction, { prioritize = false } = {}) {
         if (!DIRECTIONS[direction] || this.dead || this.completed) return;
+        if (prioritize && direction !== this.opposite(this.direction)) {
+            // Direct controls must not sit behind stale buffered turns.
+            this.turnQueue = direction === this.direction ? [] : [direction];
+            this.nextDirection = this.direction;
+            return;
+        }
         const last = this.turnQueue.at(-1) || this.nextDirection;
         if (direction === last || direction === this.opposite(last) || this.turnQueue.length >= 2) return;
         this.turnQueue.push(direction);

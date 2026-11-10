@@ -234,6 +234,8 @@ test('data-driven Snake levels validate and load without code changes', async ()
     assert.equal(manager.getTotalLevels(), 50);
     assert.equal(manager.getLevel(50).portals.length, 2);
     const levels = manager.list();
+    assert.equal(manager.getLevel(1).stepMs, 300, 'chapter one should allow a beginner time to react');
+    assert.ok(manager.getLevel(6).obstacles.length > 0);
     assert.ok(levels.every((level, index) => index === 0 || level.stepMs < levels[index - 1].stepMs));
     assert.ok(levels.every((level, index) => index === 0 || level.targetFoods > levels[index - 1].targetFoods));
     assert.ok(levels.every(level => level.targetFoods % 5 !== 0));
@@ -436,9 +438,16 @@ test('mouse strokes steer without clicking, ignore jitter, and reset outside gam
         assert.equal(turns.length, 4, 'paused mouse movement must not carry over');
         move(700, 720, 'touch');
         assert.equal(turns.length, 4, 'touch movement still uses the swipe handler');
-        listeners.get('pointerdown')({ clientX: 50, clientY: 50, pointerType: 'touch', pointerId: 1 });
-        listeners.get('pointerup')({ clientX: 50, clientY: 80, pointerType: 'touch' });
+        windowListeners.get('pointerdown')({ clientX: 50, clientY: 50, pointerType: 'touch', pointerId: 1 });
+        windowListeners.get('pointerup')({ clientX: 50, clientY: 80, pointerType: 'touch', pointerId: 1 });
         assert.equal(turns.at(-1), 'snakeDown');
+        globalThis.window.innerWidth = 400; globalThis.window.innerHeight = 800;
+        const tapStart = turns.length;
+        for (const [x, y] of [[200, 20], [390, 400], [200, 790], [10, 400]]) {
+            windowListeners.get('pointerdown')({ clientX: x, clientY: y, pointerType: 'touch', pointerId: 2 });
+            windowListeners.get('pointerup')({ clientX: x, clientY: y, pointerType: 'touch', pointerId: 2 });
+        }
+        assert.deepEqual(turns.slice(tapStart), ['snakeUp', 'snakeRight', 'snakeDown', 'snakeLeft']);
         let prevented = 0, timeStamp = 0;
         const swipe = (deltaX, deltaY, extra = {}) => windowListeners.get('wheel')({
             deltaX, deltaY, deltaMode: 0, timeStamp: timeStamp += 200,
@@ -460,6 +469,26 @@ test('mouse strokes steer without clicking, ignore jitter, and reset outside gam
         swipe(0, 3, { timeStamp: 2020 });
         assert.deepEqual(turns.slice(smallStart), ['snakeUp'], 'small new strokes must not cancel against old scroll movement');
     } finally { globalThis.window = previousWindow; }
+});
+
+test('direction button actions turn on the very next snake step', async () => {
+    const runtime = makeRuntime();
+    runtime.scene = new SnakeScene(snakeLevel);
+    runtime.scene.enter(runtime);
+    const manager = Object.create(GameManager.prototype);
+    manager.state = 'playing'; manager.runtime = runtime; manager.soundManager = {};
+    await manager.handleAction('turn', 'up');
+    runtime.scene.stepSnake(runtime);
+    assert.deepEqual(runtime.scene.snake[0], { x: 5, y: 4 });
+    await manager.handleAction('turn', 'left');
+    runtime.scene.stepSnake(runtime);
+    assert.deepEqual(runtime.scene.snake[0], { x: 4, y: 4 });
+    runtime.scene.requestTurn('down');
+    runtime.scene.requestTurn('right');
+    await manager.handleAction('turn', 'up');
+    assert.deepEqual(runtime.scene.turnQueue, ['up'], 'a fresh valid tap must replace old buffered turns');
+    runtime.scene.stepSnake(runtime);
+    assert.deepEqual(runtime.scene.snake[0], { x: 4, y: 3 });
 });
 
 test('Input maps browser key codes to named actions and axes', () => {

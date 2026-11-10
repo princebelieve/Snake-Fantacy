@@ -31,7 +31,7 @@
       "id": 1,
       "name": "River's First Whisper",
       "difficulty": "Gentle",
-      "stepMs": 157,
+      "stepMs": 300,
       "targetFoods": 6,
       "targetScore": 84,
       "start": {
@@ -55,7 +55,7 @@
       "id": 2,
       "name": "Reedbank Bend",
       "difficulty": "Gentle",
-      "stepMs": 155,
+      "stepMs": 293,
       "targetFoods": 7,
       "targetScore": 98,
       "start": {
@@ -79,7 +79,7 @@
       "id": 3,
       "name": "Otterpool Crossing",
       "difficulty": "Gentle",
-      "stepMs": 154,
+      "stepMs": 286,
       "targetFoods": 8,
       "targetScore": 112,
       "start": {
@@ -103,7 +103,7 @@
       "id": 4,
       "name": "Heron-Mist Ford",
       "difficulty": "Gentle",
-      "stepMs": 153,
+      "stepMs": 279,
       "targetFoods": 9,
       "targetScore": 126,
       "start": {
@@ -127,7 +127,7 @@
       "id": 5,
       "name": "Three Roots Weir",
       "difficulty": "Gentle",
-      "stepMs": 151,
+      "stepMs": 272,
       "targetFoods": 11,
       "targetScore": 154,
       "start": {
@@ -151,7 +151,7 @@
       "id": 6,
       "name": "Moonwell Bend",
       "difficulty": "Gentle",
-      "stepMs": 150,
+      "stepMs": 265,
       "targetFoods": 12,
       "targetScore": 168,
       "start": {
@@ -216,7 +216,7 @@
       "id": 7,
       "name": "Willow Rapids",
       "difficulty": "Gentle",
-      "stepMs": 149,
+      "stepMs": 259,
       "targetFoods": 13,
       "targetScore": 182,
       "start": {
@@ -305,7 +305,7 @@
       "id": 8,
       "name": "The Broken Floodgate",
       "difficulty": "Gentle",
-      "stepMs": 147,
+      "stepMs": 253,
       "targetFoods": 14,
       "targetScore": 196,
       "start": {
@@ -346,7 +346,7 @@
       "id": 9,
       "name": "Bracken Channel",
       "difficulty": "Gentle",
-      "stepMs": 146,
+      "stepMs": 246,
       "targetFoods": 16,
       "targetScore": 224,
       "start": {
@@ -370,7 +370,7 @@
       "id": 10,
       "name": "Serpent Spring",
       "difficulty": "Gentle",
-      "stepMs": 144,
+      "stepMs": 240,
       "targetFoods": 17,
       "targetScore": 238,
       "start": {
@@ -446,7 +446,7 @@
       "id": 11,
       "name": "Mistfen Entrance",
       "difficulty": "Steady",
-      "stepMs": 143,
+      "stepMs": 235,
       "targetFoods": 18,
       "targetScore": 252,
       "start": {
@@ -535,7 +535,7 @@
       "id": 12,
       "name": "Fogglass Pool",
       "difficulty": "Steady",
-      "stepMs": 142,
+      "stepMs": 229,
       "targetFoods": 19,
       "targetScore": 266,
       "start": {
@@ -576,7 +576,7 @@
       "id": 13,
       "name": "The Heron's Hollow",
       "difficulty": "Steady",
-      "stepMs": 140,
+      "stepMs": 223,
       "targetFoods": 21,
       "targetScore": 294,
       "start": {
@@ -645,7 +645,7 @@
       "id": 14,
       "name": "Willow-Veil Marsh",
       "difficulty": "Steady",
-      "stepMs": 139,
+      "stepMs": 218,
       "targetFoods": 22,
       "targetScore": 308,
       "start": {
@@ -710,7 +710,7 @@
       "id": 15,
       "name": "Silver Reed Crossing",
       "difficulty": "Steady",
-      "stepMs": 138,
+      "stepMs": 213,
       "targetFoods": 23,
       "targetScore": 322,
       "start": {
@@ -799,7 +799,7 @@
       "id": 16,
       "name": "Clouded Waters",
       "difficulty": "Steady",
-      "stepMs": 136,
+      "stepMs": 208,
       "targetFoods": 24,
       "targetScore": 336,
       "start": {
@@ -840,7 +840,7 @@
       "id": 17,
       "name": "The Drowned Bell",
       "difficulty": "Steady",
-      "stepMs": 135,
+      "stepMs": 202,
       "targetFoods": 26,
       "targetScore": 364,
       "start": {
@@ -864,7 +864,7 @@
       "id": 18,
       "name": "Whitecap Steps",
       "difficulty": "Steady",
-      "stepMs": 134,
+      "stepMs": 198,
       "targetFoods": 27,
       "targetScore": 378,
       "start": {
@@ -929,7 +929,7 @@
       "id": 19,
       "name": "Veilwater Gorge",
       "difficulty": "Steady",
-      "stepMs": 132,
+      "stepMs": 193,
       "targetFoods": 28,
       "targetScore": 392,
       "start": {
@@ -1018,7 +1018,7 @@
       "id": 20,
       "name": "Mist Weaver's Rise",
       "difficulty": "Steady",
-      "stepMs": 131,
+      "stepMs": 188,
       "targetFoods": 29,
       "targetScore": 406,
       "start": {
@@ -1070,7 +1070,7 @@
       "id": 21,
       "name": "Thunderhead Reach",
       "difficulty": "Tricky",
-      "stepMs": 130,
+      "stepMs": 184,
       "targetFoods": 31,
       "targetScore": 434,
       "start": {
@@ -1139,7 +1139,7 @@
       "id": 22,
       "name": "Rain Drum Falls",
       "difficulty": "Tricky",
-      "stepMs": 128,
+      "stepMs": 179,
       "targetFoods": 32,
       "targetScore": 448,
       "start": {
@@ -1204,7 +1204,7 @@
       "id": 23,
       "name": "The Storm Heron's Nest",
       "difficulty": "Tricky",
-      "stepMs": 127,
+      "stepMs": 175,
       "targetFoods": 33,
       "targetScore": 462,
       "start": {
@@ -1293,7 +1293,7 @@
       "id": 24,
       "name": "Lightning Ford",
       "difficulty": "Tricky",
-      "stepMs": 126,
+      "stepMs": 170,
       "targetFoods": 34,
       "targetScore": 476,
       "start": {
@@ -1350,7 +1350,7 @@
       "id": 25,
       "name": "Floodplain Maze",
       "difficulty": "Tricky",
-      "stepMs": 124,
+      "stepMs": 166,
       "targetFoods": 36,
       "targetScore": 504,
       "start": {
@@ -1374,7 +1374,7 @@
       "id": 26,
       "name": "The Falling Sky",
       "difficulty": "Tricky",
-      "stepMs": 123,
+      "stepMs": 162,
       "targetFoods": 37,
       "targetScore": 518,
       "start": {
@@ -1439,7 +1439,7 @@
       "id": 27,
       "name": "Victor's Watchfire",
       "difficulty": "Tricky",
-      "stepMs": 122,
+      "stepMs": 158,
       "targetFoods": 38,
       "targetScore": 532,
       "start": {
@@ -1528,7 +1528,7 @@
       "id": 28,
       "name": "Thunderstone Locks",
       "difficulty": "Tricky",
-      "stepMs": 120,
+      "stepMs": 155,
       "targetFoods": 39,
       "targetScore": 546,
       "start": {
@@ -1585,7 +1585,7 @@
       "id": 29,
       "name": "Blackwater Bend",
       "difficulty": "Tricky",
-      "stepMs": 119,
+      "stepMs": 151,
       "targetFoods": 41,
       "targetScore": 574,
       "start": {
@@ -1654,7 +1654,7 @@
       "id": 30,
       "name": "Rain Crown Falls",
       "difficulty": "Tricky",
-      "stepMs": 118,
+      "stepMs": 147,
       "targetFoods": 42,
       "targetScore": 588,
       "start": {
@@ -1734,7 +1734,7 @@
       "id": 31,
       "name": "Moon Eel Passage",
       "difficulty": "Brave",
-      "stepMs": 116,
+      "stepMs": 144,
       "targetFoods": 43,
       "targetScore": 602,
       "start": {
@@ -1823,7 +1823,7 @@
       "id": 32,
       "name": "Night Current",
       "difficulty": "Brave",
-      "stepMs": 115,
+      "stepMs": 140,
       "targetFoods": 44,
       "targetScore": 616,
       "start": {
@@ -1880,7 +1880,7 @@
       "id": 33,
       "name": "The Blue Lanterns",
       "difficulty": "Brave",
-      "stepMs": 113,
+      "stepMs": 137,
       "targetFoods": 46,
       "targetScore": 644,
       "start": {
@@ -1904,7 +1904,7 @@
       "id": 34,
       "name": "Eclipse Rapids",
       "difficulty": "Brave",
-      "stepMs": 112,
+      "stepMs": 133,
       "targetFoods": 47,
       "targetScore": 658,
       "start": {
@@ -1969,7 +1969,7 @@
       "id": 35,
       "name": "Pearl-Dark Hollow",
       "difficulty": "Brave",
-      "stepMs": 111,
+      "stepMs": 130,
       "targetFoods": 48,
       "targetScore": 672,
       "start": {
@@ -2058,7 +2058,7 @@
       "id": 36,
       "name": "The Tidal Stair",
       "difficulty": "Brave",
-      "stepMs": 109,
+      "stepMs": 127,
       "targetFoods": 49,
       "targetScore": 686,
       "start": {
@@ -2115,7 +2115,7 @@
       "id": 37,
       "name": "Moonpool Gate",
       "difficulty": "Brave",
-      "stepMs": 108,
+      "stepMs": 124,
       "targetFoods": 51,
       "targetScore": 714,
       "start": {
@@ -2184,7 +2184,7 @@
       "id": 38,
       "name": "Undertow Garden",
       "difficulty": "Brave",
-      "stepMs": 107,
+      "stepMs": 121,
       "targetFoods": 52,
       "targetScore": 728,
       "start": {
@@ -2249,7 +2249,7 @@
       "id": 39,
       "name": "The Longest Current",
       "difficulty": "Brave",
-      "stepMs": 105,
+      "stepMs": 118,
       "targetFoods": 53,
       "targetScore": 742,
       "start": {
@@ -2338,7 +2338,7 @@
       "id": 40,
       "name": "Lunar Spring",
       "difficulty": "Brave",
-      "stepMs": 104,
+      "stepMs": 115,
       "targetFoods": 54,
       "targetScore": 756,
       "start": {
@@ -2406,7 +2406,7 @@
       "id": 41,
       "name": "Saltwind Inlet",
       "difficulty": "Expert",
-      "stepMs": 103,
+      "stepMs": 112,
       "targetFoods": 56,
       "targetScore": 784,
       "start": {
@@ -2430,7 +2430,7 @@
       "id": 42,
       "name": "Singing Shoals",
       "difficulty": "Expert",
-      "stepMs": 101,
+      "stepMs": 110,
       "targetFoods": 57,
       "targetScore": 798,
       "start": {
@@ -2495,7 +2495,7 @@
       "id": 43,
       "name": "The Coral Labyrinth",
       "difficulty": "Expert",
-      "stepMs": 100,
+      "stepMs": 107,
       "targetFoods": 58,
       "targetScore": 812,
       "start": {
@@ -2584,7 +2584,7 @@
       "id": 44,
       "name": "Whale Road",
       "difficulty": "Expert",
-      "stepMs": 99,
+      "stepMs": 104,
       "targetFoods": 59,
       "targetScore": 826,
       "start": {
@@ -2657,7 +2657,7 @@
       "id": 45,
       "name": "Sea Dragon's Reach",
       "difficulty": "Expert",
-      "stepMs": 97,
+      "stepMs": 102,
       "targetFoods": 61,
       "targetScore": 854,
       "start": {
@@ -2726,7 +2726,7 @@
       "id": 46,
       "name": "The Sunken Causeway",
       "difficulty": "Legend",
-      "stepMs": 96,
+      "stepMs": 99,
       "targetFoods": 62,
       "targetScore": 868,
       "start": {
@@ -2791,7 +2791,7 @@
       "id": 47,
       "name": "Victor's Tide Keep",
       "difficulty": "Legend",
-      "stepMs": 95,
+      "stepMs": 97,
       "targetFoods": 63,
       "targetScore": 882,
       "start": {
@@ -2880,7 +2880,7 @@
       "id": 48,
       "name": "The Open Ocean",
       "difficulty": "Legend",
-      "stepMs": 93,
+      "stepMs": 95,
       "targetFoods": 64,
       "targetScore": 896,
       "start": {

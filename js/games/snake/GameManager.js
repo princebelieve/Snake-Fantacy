@@ -91,7 +91,7 @@ export class GameManager {
         }, { passive: false });
         this.mouseAnchor = null;
         window.addEventListener('pointermove', this.handleMouseMove = event => {
-            if (event.pointerType !== 'mouse') return;
+            if (event.pointerType !== 'mouse') { this.handleTouchMove(event); return; }
             if (this.state !== 'playing' || this.ui.screens.get('game')?.hidden) {
                 this.mouseAnchor = null;
                 return;
@@ -109,22 +109,26 @@ export class GameManager {
             if (!event.relatedTarget) this.mouseAnchor = null;
         });
         window.addEventListener('blur', this.handleMouseBlur = () => { this.mouseAnchor = null; });
-        canvas.addEventListener('pointerdown', this.handlePointerDown = event => {
-            if (event.pointerType === 'mouse' || this.state !== 'playing' || this.ui.screens.get('game')?.hidden) return;
-            this.touchStart = { x: event.clientX, y: event.clientY };
-            canvas.setPointerCapture(event.pointerId);
+        window.addEventListener('pointerdown', this.handlePointerDown = event => {
+            if (event.pointerType === 'mouse' || event.isPrimary === false || this.state !== 'playing' || this.ui.screens.get('game')?.hidden) return;
+            if (event.target?.closest?.('button, a, input, select, textarea, .game-overlay, .tutorial-overlay')) return;
+            this.touchStart = { x: event.clientX, y: event.clientY, pointerId: event.pointerId, swiped: false };
+            event.target?.setPointerCapture?.(event.pointerId);
         });
-        canvas.addEventListener('pointerup', this.handlePointerUp = event => {
-            if (!this.touchStart) return;
-            const dx = event.clientX - this.touchStart.x;
-            const dy = event.clientY - this.touchStart.y;
+        window.addEventListener('pointerup', this.handlePointerUp = event => {
+            const touch = this.touchStart;
+            if (!touch || event.pointerId !== touch.pointerId) return;
+            this.handleTouchMove(event);
             this.touchStart = null;
-            if (this.state !== 'playing') return;
-            if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
-            const direction = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'Right' : 'Left') : (dy > 0 ? 'Down' : 'Up');
-            this.runtime.input.trigger(`snake${direction}`);
+            if (this.state !== 'playing' || touch.swiped) return;
+            // Tap the top, bottom, left or right region of the screen to steer.
+            const x = (event.clientX / window.innerWidth - .5) * 2;
+            const y = (event.clientY / window.innerHeight - .5) * 2;
+            if (Math.max(Math.abs(x), Math.abs(y)) < .05) return;
+            this.steer(Math.abs(x) > Math.abs(y) ? (x > 0 ? 'Right' : 'Left') : (y > 0 ? 'Down' : 'Up'));
         });
-        canvas.addEventListener('pointercancel', this.handlePointerCancel = () => { this.touchStart = null; this.mouseAnchor = null; });
+        window.addEventListener('pointercancel', this.handlePointerCancel = () => { this.touchStart = null; this.mouseAnchor = null; });
+
     }
 
     async handleAction(action, value) {
@@ -142,14 +146,24 @@ export class GameManager {
             case 'resume': this.resumeGame(); break;
             case 'restart': return this.playLevel(this.currentLevel);
             case 'next-level': return this.openStory(this.currentLevel + 1);
-            case 'turn': if (this.state === 'playing') this.runtime.input.trigger(`snake${value[0].toUpperCase()}${value.slice(1)}`); break;
+            case 'turn': this.steer(`${value[0].toUpperCase()}${value.slice(1)}`); break;
             case 'sound': this.ui.setSoundState(this.soundManager.toggle()); break;
         }
     }
 
+    handleTouchMove(event) {
+        const touch = this.touchStart;
+        if (!touch || event.pointerId !== touch.pointerId || this.state !== 'playing') return;
+        const dx = event.clientX - touch.x, dy = event.clientY - touch.y;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < 10) return;
+        touch.swiped = true;
+        touch.x = event.clientX; touch.y = event.clientY;
+        this.steer(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'Right' : 'Left') : (dy > 0 ? 'Down' : 'Up'));
+    }
+
     steer(direction) {
         if (this.state !== 'playing') return;
-        if (this.runtime.scene?.requestTurn) this.runtime.scene.requestTurn(direction.toLowerCase());
+        if (this.runtime.scene?.requestTurn) this.runtime.scene.requestTurn(direction.toLowerCase(), { prioritize: true });
         else this.runtime.input.trigger(`snake${direction}`);
     }
 
@@ -330,7 +344,7 @@ export class GameManager {
         window.removeEventListener('mouseout', this.handleMouseLeave);
         window.removeEventListener('blur', this.handleMouseBlur);
         for (const [type, handler] of [['pointerdown', this.handlePointerDown], ['pointerup', this.handlePointerUp], ['pointercancel', this.handlePointerCancel]]) {
-            this.runtime.canvas.removeEventListener(type, handler);
+            window.removeEventListener(type, handler);
         }
         this.soundManager.destroy?.();
         window.removeEventListener('keydown', this.handleBrowserKeyDown);
