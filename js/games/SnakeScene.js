@@ -295,7 +295,10 @@ export class SnakeScene extends GameScene {
 
     resetGrid(runtime) {
         const grid = this.level.grid;
-        this.tile = Math.max(grid.minimumTile || 12, Math.floor(Math.min(runtime.width / this.columns, runtime.height / this.rows)));
+        // The full logical board must fit, even on short phone viewports.
+        // A minimum tile size used to push edge cells (and their food) off canvas.
+        const fit = Math.max(0, Math.min(runtime.width / this.columns, runtime.height / this.rows));
+        this.tile = fit >= 1 ? Math.floor(fit) : fit;
         this.offsetX = Math.floor((runtime.width - this.columns * this.tile) / 2);
         this.offsetY = Math.floor((runtime.height - this.rows * this.tile) / 2);
     }

@@ -54,10 +54,34 @@ export class GameManager {
             if (this.ui.screens.get('game')?.hidden) return;
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(event.code)) event.preventDefault();
             if (event.code === 'Escape') this.handleAction(this.state === 'paused' ? 'resume' : 'pause');
+            if (['Space', 'KeyP'].includes(event.code) && !event.repeat && !event.target?.closest?.('button, input, textarea, select')) {
+                event.preventDefault();
+                this.handleAction(this.state === 'paused' ? 'resume' : 'pause');
+            }
         });
         const canvas = this.runtime.canvas;
+        this.mouseAnchor = null;
+        window.addEventListener('pointermove', this.handleMouseMove = event => {
+            if (event.pointerType !== 'mouse') return;
+            if (this.state !== 'playing' || this.ui.screens.get('game')?.hidden) {
+                this.mouseAnchor = null;
+                return;
+            }
+            const point = { x: event.clientX, y: event.clientY };
+            if (!this.mouseAnchor) { this.mouseAnchor = point; return; }
+            const dx = point.x - this.mouseAnchor.x, dy = point.y - this.mouseAnchor.y;
+            // Ignore small hand tremors; every deliberate stroke chooses its dominant axis.
+            if (Math.max(Math.abs(dx), Math.abs(dy)) < 6) return;
+            const direction = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'Right' : 'Left') : (dy > 0 ? 'Down' : 'Up');
+            this.runtime.input.trigger(`snake${direction}`);
+            this.mouseAnchor = point;
+        });
+        window.addEventListener('mouseout', this.handleMouseLeave = event => {
+            if (!event.relatedTarget) this.mouseAnchor = null;
+        });
+        window.addEventListener('blur', this.handleMouseBlur = () => { this.mouseAnchor = null; });
         canvas.addEventListener('pointerdown', this.handlePointerDown = event => {
-            if (this.ui.screens.get('game')?.hidden) return;
+            if (event.pointerType === 'mouse' || this.state !== 'playing' || this.ui.screens.get('game')?.hidden) return;
             this.touchStart = { x: event.clientX, y: event.clientY };
             canvas.setPointerCapture(event.pointerId);
         });
@@ -66,20 +90,23 @@ export class GameManager {
             const dx = event.clientX - this.touchStart.x;
             const dy = event.clientY - this.touchStart.y;
             this.touchStart = null;
+            if (this.state !== 'playing') return;
             if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
             const direction = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'Right' : 'Left') : (dy > 0 ? 'Down' : 'Up');
             this.runtime.input.trigger(`snake${direction}`);
         });
-        canvas.addEventListener('pointercancel', () => { this.touchStart = null; });
+        canvas.addEventListener('pointercancel', this.handlePointerCancel = () => { this.touchStart = null; this.mouseAnchor = null; });
     }
 
     async handleAction(action, value) {
+        this.soundManager.unlock?.();
         switch (action) {
             case 'start': return this.openStory(this.progressManager.getUnlockedLevel());
             case 'begin-story': return this.playLevel(this.currentLevel, { tutorial: !this.progressManager.data.hasSeenTutorial && this.currentLevel === 1 });
+            case 'start-chapter': return this.beginChapter();
             case 'tutorial-next': return this.advanceTutorial(false);
             case 'tutorial-skip': return this.advanceTutorial(true);
-            case 'levels': this.refreshLevelsUI(); this.ui.showScreen('levels'); break;
+            case 'levels': this.runtime.pause(); this.state = 'levels'; this.soundManager.setMode?.('menu'); this.refreshLevelsUI(); this.ui.showScreen('levels'); break;
             case 'menu': this.showMenu(); break;
             case 'play-level': return this.openStory(value);
             case 'pause': this.pauseGame(); break;
@@ -98,6 +125,7 @@ export class GameManager {
         const narrative = this.currentLevel === 1 ? this.levelManager.story.prologue : level.storyArc?.story || '';
         this.ui.showStory(level, narrative);
         this.state = 'story';
+        this.soundManager.setMode?.('story');
     }
 
     async playLevel(levelId, { tutorial = false } = {}) {
@@ -106,6 +134,7 @@ export class GameManager {
         this.currentScore = 0;
         this.currentFoods = 0;
         this.ui.hideTutorial?.();
+        this.runtime.pause();
         this.state = 'loading-level';
         this.ui.showScreen('loading');
         await new Promise(resolve => setTimeout(resolve, 250));
@@ -128,8 +157,7 @@ export class GameManager {
             this.ui.showTutorial(0);
             this.runtime.render?.(0);
         } else {
-            this.state = 'playing';
-            this.startRuntime();
+            this.waitForStart();
         }
     }
 
@@ -141,13 +169,31 @@ export class GameManager {
             return;
         }
         this.progressManager.markTutorialSeen();
-        this.state = 'playing';
         this.ui.hideTutorial();
+        this.waitForStart();
+    }
+
+    waitForStart() {
+        this.state = 'ready';
+        this.mouseAnchor = null;
+        this.touchStart = null;
+        this.runtime.pause();
+        this.soundManager.setMode?.('ready');
+        this.ui.showOverlay('readyOverlay');
+        this.runtime.render?.(0);
+    }
+
+    beginChapter() {
+        if (this.state !== 'ready') return;
+        this.state = 'playing';
         this.ui.hideOverlays();
         this.startRuntime();
     }
 
     startRuntime() {
+        this.mouseAnchor = null;
+        this.soundManager.setMode?.('playing');
+        this.soundManager.play('hiss');
         if (this.runtime.running) this.runtime.resume();
         else this.runtime.start();
     }
@@ -167,6 +213,7 @@ export class GameManager {
 
     finishLevel(reason, score) {
         this.state = 'failed';
+        this.soundManager.setMode?.('failed');
         this.progressManager.recordScore(this.currentLevel, score);
         this.currentScore = score;
         this.runtime.pause();
@@ -177,6 +224,7 @@ export class GameManager {
 
     completeLevel({ score, regularScore = 0 }) {
         this.state = 'won';
+        this.soundManager.setMode?.('won');
         const level = this.levelManager.getLevel(this.currentLevel);
         const nextLevelAvailable = this.currentLevel < this.levelManager.getTotalLevels();
         const nextLevel = nextLevelAvailable ? this.levelManager.getLevel(this.currentLevel + 1) : null;
@@ -204,6 +252,7 @@ export class GameManager {
     pauseGame() {
         if (this.state !== 'playing' || !this.runtime.running || this.runtime.paused) return;
         this.state = 'paused';
+        this.soundManager.setMode?.('paused');
         this.runtime.pause();
         this.ui.showOverlay('pauseOverlay');
     }
@@ -211,6 +260,8 @@ export class GameManager {
     resumeGame() {
         if (this.state !== 'paused' || !this.runtime.running) return;
         this.state = 'playing';
+        this.mouseAnchor = null;
+        this.soundManager.setMode?.('playing');
         this.ui.hideOverlays();
         this.runtime.resume();
     }
@@ -218,6 +269,7 @@ export class GameManager {
     showMenu() {
         if (this.runtime.running) this.runtime.pause();
         this.state = 'menu';
+        this.soundManager.setMode?.('menu');
         this.ui.hideOverlays();
         this.refreshProgressUI();
         this.ui.showScreen('menu');
@@ -236,6 +288,13 @@ export class GameManager {
     }
 
     destroy() {
+        window.removeEventListener('pointermove', this.handleMouseMove);
+        window.removeEventListener('mouseout', this.handleMouseLeave);
+        window.removeEventListener('blur', this.handleMouseBlur);
+        for (const [type, handler] of [['pointerdown', this.handlePointerDown], ['pointerup', this.handlePointerUp], ['pointercancel', this.handlePointerCancel]]) {
+            this.runtime.canvas.removeEventListener(type, handler);
+        }
+        this.soundManager.destroy?.();
         window.removeEventListener('keydown', this.handleBrowserKeyDown);
         this.runtime.destroy();
     }

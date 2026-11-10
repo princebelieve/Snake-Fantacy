@@ -72,3 +72,13 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
  .goal-ribbon{margin-bottom:7px}
 }
 @media(max-width:760px) and (orientation:portrait) and (max-height:680px){.mobile-controls{min-height:112px}.touch-pad{grid-template-rows:repeat(2,38px)}.score-strip strong{font-size:16px}.level-heading strong{font-size:15px}}
+/* Keep the modal above highlighted controls, including their pointer targets. */
+.tutorial-overlay{z-index:10;overflow-y:auto;align-items:flex-end}
+.tutorial-card{max-height:100%;overflow-y:auto;flex-shrink:0}
+.tutorial-actions{gap:12px;flex-wrap:wrap}
+.tutorial-actions .button{flex:1 1 160px;min-width:0;padding-inline:12px}
+.tutorial-actions .text-button{flex:0 0 auto;min-height:44px}
+.pause-button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1}
+.pause-button small{font:7px system-ui,sans-serif;letter-spacing:.04em}
+.game-overlay{overflow-y:auto}
+@media(max-width:360px){.tutorial-actions{flex-direction:column;align-items:stretch}.tutorial-actions .button{flex:auto}.tutorial-actions .text-button{order:1}}

@@ -50,7 +50,7 @@
             <header class="game-toolbar">
                 <button class="toolbar-button" data-action="menu" aria-label="Return to chapter map">←</button>
                 <div class="level-heading"><small id="levelDifficulty">CHAPTER 01 · GENTLE</small><strong id="levelName">River's First Whisper</strong><span id="levelForm">AMARA'S FORM · RIVER SERPENT</span></div>
-                <button class="toolbar-button pause-button" data-action="pause" aria-label="Pause game">Ⅱ</button>
+                <button class="toolbar-button pause-button" data-action="pause" aria-label="Pause game" title="Pause (Space, P or Esc)"><span aria-hidden="true">Ⅱ</span><small>PAUSE</small></button>
             </header>
             <div class="score-strip">
                 <div><small>OFFERINGS</small><strong id="foodValue">0 / 5</strong></div>
@@ -60,22 +60,40 @@
             </div>
             <div class="goal-ribbon"><span class="goal-leaf">●</span><span id="goalText">Gather river offerings. Avoid rocks and your own tail.</span><span class="goal-progress" id="goalProgress">0 / 6</span></div>
             <div class="canvas-frame"><canvas id="gameCanvas" aria-label="Amara's river snake game board"></canvas></div>
-            <div class="mobile-controls"><span>SWIPE TO TURN</span><div class="touch-pad" aria-label="Snake direction controls">
+            <div class="mobile-controls"><span>SWIPE / MOVE MOUSE</span><div class="touch-pad" aria-label="Snake direction controls">
                 <span></span><button data-turn="up" aria-label="Move up">↑</button><span></span>
                 <button data-turn="left" aria-label="Move left">←</button><button data-turn="down" aria-label="Move down">↓</button><button data-turn="right" aria-label="Move right">→</button>
             </div></div>
 
+            <div class="game-overlay" id="readyOverlay" role="dialog" aria-modal="true" aria-labelledby="readyTitle" hidden>
+                <p class="eyebrow">THE RIVER CAN WAIT</p><h2 id="readyTitle">Ready to play?</h2>
+                <p class="result-line">Amara will stay still until you click or tap Start.<br>Move your mouse anywhere in the game window to steer, or use arrow keys or touch swipes.</p>
+                <button class="button button-primary" data-action="start-chapter">START CHAPTER</button>
+                <button class="text-button" data-action="menu">BACK TO MENU</button>
+            </div>
             <div class="tutorial-overlay" id="tutorialOverlay" hidden>
                 <article class="tutorial-card" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
                     <p class="eyebrow" id="tutorialStep">RIVER LESSON 1 OF 3</p><h2 id="tutorialTitle">Read the current</h2><p id="tutorialBody"></p>
                     <div class="tutorial-actions"><button class="text-button" data-action="tutorial-skip">SKIP LESSON</button><button class="button button-primary" data-action="tutorial-next" id="tutorialNext">NEXT</button></div>
                 </article>
             </div>
-            <div class="game-overlay" id="pauseOverlay" hidden><div class="overlay-emblem">Ⅱ</div><p class="eyebrow">THE RIVER WILL WAIT</p><h2>Take a breath.</h2><button class="button button-primary" data-action="resume">RETURN TO AMARA</button><button class="button button-secondary" data-action="restart">RESTART CHAPTER</button><button class="text-button" data-action="levels">CHAPTER MAP</button></div>
+            <div class="game-overlay" id="pauseOverlay" hidden><div class="overlay-emblem">Ⅱ</div><p class="eyebrow">THE RIVER WILL WAIT</p><h2>Game paused</h2><button class="button button-primary" data-action="resume">RESUME GAME</button><button class="button button-secondary" data-action="restart">RESTART CHAPTER</button><button class="text-button" data-action="levels">CHAPTER MAP</button></div>
             <div class="game-overlay" id="gameOverOverlay" hidden><div class="overlay-emblem sad">↻</div><p class="eyebrow">THE CURRENT TURNS AGAIN</p><h2 id="gameOverTitle">Amara struck a river rock.</h2><p class="result-line">Score <strong id="finalScore">0</strong> · best <strong id="finalBest">0</strong></p><button class="button button-primary" data-action="restart">TRY THE CHAPTER AGAIN</button><button class="text-button" data-action="levels">CHAPTER MAP</button></div>
             <div class="game-overlay" id="victoryOverlay" hidden><div class="overlay-emblem win">✿</div><p class="eyebrow">CHAPTER COMPLETE</p><h2 id="victoryTitle">The current carries Amara onward.</h2><p class="earned-stars" id="earnedStars">✿ ✿ ✿</p><p class="result-line">Score <strong id="victoryScore">0</strong> · best <strong id="victoryBest">0</strong></p><p class="prize-line" id="prizeLine">A new chapter opens.</p><button class="button button-primary" data-action="next-level">NEXT CHAPTER</button><button class="button button-secondary" data-action="levels">CHAPTER MAP</button></div>
         </section>
     </main>
+    <script>
+        // Keep updates independent of the app module, which an older worker may cache.
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname))) {
+            const hadController = Boolean(navigator.serviceWorker.controller);
+            let reloading = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (hadController && !reloading) { reloading = true; location.reload(); }
+            });
+            navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' })
+                .then(registration => registration.update()).catch(console.error);
+        }
+    </script>
     <script type="module" src="./js/app.js"></script>
 </body>
 </html>

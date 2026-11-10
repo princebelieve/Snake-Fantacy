@@ -49,7 +49,7 @@ export class GameUI {
         const lessons = [
             { focus: ['.score-strip', '.goal-ribbon'], title: 'Read your river signs', body: 'OFFERINGS is the chapter goal; SCORE is your points; PERSONAL BEST is your record; SPECIAL FRUIT is its countdown. The ribbon tracks goal and leaf-score progress. Sound toggles effects, the left arrow opens the menu, and pause stops the run.' },
             { focus: ['.canvas-frame'], title: 'Follow the food', body: 'Guide Amara’s head to the red apple. Each apple, spirit fish, or water orb stays until you eat it, adds to your goal, and grows the serpent. The golden lightning spark is worth five times the last regular fruit’s points; missing it only loses those bonus points.' },
-            { focus: ['.canvas-frame', '.mobile-controls'], title: 'Steer clear of danger', body: 'Turn with the arrow keys, WASD, a swipe, or the touch pad. The marked gray rocks, riverbank, and Amara’s own body end the run on contact. Plan wide turns before the serpent gets long.' }
+            { focus: ['.canvas-frame', '.mobile-controls'], title: 'Steer clear of danger', body: 'Move the mouse anywhere in the game window to steer, or use arrow keys, WASD, touch swipes, or the direction pad. The marked gray rocks, riverbank, and Amara’s own body end the run on contact. Plan wide turns before the serpent gets long.' }
         ];
         const lesson = lessons[stepIndex];
         for (const element of this.root.querySelectorAll('.tutorial-focus')) element.classList.remove('tutorial-focus');
@@ -57,7 +57,7 @@ export class GameUI {
         this.root.querySelector('#tutorialStep').textContent = `RIVER LESSON ${stepIndex + 1} OF ${lessons.length}`;
         this.root.querySelector('#tutorialTitle').textContent = lesson.title;
         this.root.querySelector('#tutorialBody').textContent = lesson.body;
-        this.root.querySelector('#tutorialNext').textContent = stepIndex === lessons.length - 1 ? 'PLAY CHAPTER 01' : 'NEXT';
+        this.root.querySelector('#tutorialNext').textContent = stepIndex === lessons.length - 1 ? 'FINISH LESSON' : 'NEXT';
         this.tutorialStepCount = lessons.length;
         this.root.querySelector('#tutorialOverlay').hidden = false;
     }
@@ -122,7 +122,9 @@ export class GameUI {
 
     setSoundState(enabled) {
         const button = this.root.querySelector('[data-action="sound"]');
-        button.innerHTML = enabled ? '♫ <span>Sound on</span>' : '♫ <span>Sound off</span>';
+        button.innerHTML = enabled ? '&#128266; <span>Sound on</span>' : '&#128263; <span>Sound off</span>';
+        button.setAttribute('aria-label', enabled ? 'Mute sound' : 'Turn sound on');
+        button.title = enabled ? 'Sound on — click to mute' : 'Sound off — click to enable';
         button.setAttribute('aria-pressed', String(enabled));
     }
 

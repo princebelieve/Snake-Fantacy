@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = 'amara-fantacy-game-v17';
+const CACHE_NAME = 'amara-fantacy-game-v24';
 const APP_FILES = [
     './', './index.html', './manifest.json', './README.md', './GAME_PLAN.md',
     './docs/ENGINE_API.md', './docs/SNAKE_LEVEL_SCHEMA.md', './css/style.css', './css/game-stage.css',
@@ -30,6 +30,19 @@ self.addEventListener('install', event => {
 
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
+    // Fetch code together with the current HTML; never mix fresh markup with old modules.
+    if (/\.(?:js|css)$/.test(new URL(event.request.url).pathname)) {
+        event.respondWith(fetch(new Request(event.request, { cache: 'no-cache' }))
+            .then(async response => {
+                if (response.ok) {
+                    const cache = await caches.open(CACHE_NAME);
+                    await cache.put(event.request, response.clone());
+                }
+                return response;
+            })
+            .catch(async () => (await (await caches.open(CACHE_NAME)).match(event.request)) || Response.error()));
+        return;
+    }
     if (event.request.mode === 'navigate') {
         event.respondWith(
             fetch(new Request(event.request, { cache: 'reload' }))
@@ -42,7 +55,7 @@ self.addEventListener('fetch', event => {
         return;
     }
     event.respondWith(
-        caches.match(event.request).then(cached => {
+        caches.open(CACHE_NAME).then(cache => cache.match(event.request)).then(cached => {
             if (cached) return cached;
             return fetch(event.request).then(response => {
                 if (response.ok && new URL(event.request.url).origin === self.location.origin) {

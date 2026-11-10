@@ -118,6 +118,35 @@ test('portrait play transposes the board, food, hazards and portals without chan
     assert.equal(level.direction, 'right');
 });
 
+test('food at every board edge remains on canvas in small viewports and after resizing', () => {
+    for (const [width, height] of [[266, 165], [290, 190], [220, 310], [600, 90]]) {
+        const runtime = makeRuntime({ width, height });
+        const scene = new SnakeScene({ ...snakeLevel,
+            grid: { columns: 24, rows: 16, minimumTile: 12 }, foods: []
+        });
+        scene.enter(runtime);
+        const checkEdges = () => {
+            assert.ok(scene.tile > 0);
+            for (const x of [0, scene.columns - 1]) for (const y of [0, scene.rows - 1]) {
+                scene.foodQueue = [{ x, y, type: 'apple' }];
+                scene.spawnFood(runtime);
+                assert.ok(scene.food.position.x >= 0);
+                assert.ok(scene.food.position.y >= 0);
+                assert.ok(scene.food.position.x + scene.tile <= runtime.width);
+                assert.ok(scene.food.position.y + scene.tile <= runtime.height);
+                assert.equal(scene.food.visible, true);
+            }
+        };
+        checkEdges();
+        runtime.width = height; runtime.height = width;
+        scene.resize(runtime.width, runtime.height, runtime);
+        checkEdges();
+        const food = { ...scene.foodCell };
+        scene.updateBonusClock(60, runtime);
+        assert.deepEqual(scene.foodCell, food, 'regular food must not expire');
+    }
+});
+
 test('SnakeScene completes its configured food objective and reports victory', () => {
     const runtime = makeRuntime({ width: 600, height: 400 });
     let result = null;
@@ -326,16 +355,28 @@ test('GameManager coordinates menu, play, pause, failure, retry, and level compl
     await manager.handleAction('tutorial-next');
     await manager.handleAction('tutorial-next');
     await manager.handleAction('tutorial-next');
+    assert.equal(manager.state, 'ready');
+    assert.equal(runtime.paused, true);
+    assert.equal(runtime.running, false, 'tutorial completion must not start the game loop');
+    const waitingHead = { ...runtime.scene.snake[0] };
+    await manager.handleAction('turn', 'down');
+    assert.deepEqual(runtime.scene.snake[0], waitingHead);
+    await manager.handleAction('start-chapter');
     assert.equal(manager.state, 'playing');
     manager.handleAction('pause');
     assert.equal(manager.state, 'paused');
+    assert.equal(runtime.paused, true);
     manager.handleAction('resume');
     assert.equal(manager.state, 'playing');
+    assert.equal(runtime.paused, false);
     runtime.scene.onScoreCallback(50, snakeLevel, 1);
     runtime.scene.onGameOverCallback('Wall collision', 50);
     assert.equal(manager.state, 'failed');
     assert.equal(progress.getBestScore(), 50);
     await manager.handleAction('restart');
+    assert.equal(manager.state, 'ready');
+    assert.equal(runtime.paused, true, 'retry must wait for another start click');
+    await manager.handleAction('start-chapter');
     runtime.scene.onVictoryCallback({ score: 80, level: snakeLevel });
     assert.equal(manager.state, 'won');
     assert.equal(progress.getUnlockedLevel(), 2);
@@ -343,10 +384,46 @@ test('GameManager coordinates menu, play, pause, failure, retry, and level compl
     assert.equal(manager.currentLevel, 2);
     assert.equal(manager.state, 'story');
     await manager.handleAction('begin-story');
+    assert.equal(manager.state, 'ready');
+    assert.equal(runtime.paused, true, 'later chapters must also wait');
+    await manager.handleAction('start-chapter');
     assert.equal(manager.state, 'playing');
     manager.destroy();
     if (previousWindow === undefined) delete globalThis.window;
     else globalThis.window = previousWindow;
+});
+
+test('mouse strokes steer without clicking, ignore jitter, and reset outside gameplay', () => {
+    const previousWindow = globalThis.window;
+    const windowListeners = new Map();
+    globalThis.window = { addEventListener(type, handler) { windowListeners.set(type, handler); }, removeEventListener() {} };
+    try {
+        const listeners = new Map(), turns = [];
+        const manager = Object.create(GameManager.prototype);
+        manager.state = 'playing';
+        manager.ui = { screens: new Map([['game', { hidden: false }]]) };
+        manager.runtime = {
+            canvas: { addEventListener(type, handler) { listeners.set(type, handler); }, setPointerCapture() {} },
+            input: { bind() { return this; }, trigger(action) { turns.push(action); } }
+        };
+        manager.bindInput();
+        const move = (x, y, pointerType = 'mouse') => windowListeners.get('pointermove')({ clientX: x, clientY: y, pointerType, buttons: 0 });
+        move(100, 100); move(103, 104);
+        assert.deepEqual(turns, []);
+        move(120, 100); move(120, 80); move(100, 80); move(100, 100);
+        assert.deepEqual(turns, ['snakeRight', 'snakeUp', 'snakeLeft', 'snakeDown']);
+        windowListeners.get('mouseout')({ relatedTarget: null });
+        move(500, 500);
+        assert.equal(turns.length, 4, 're-entering must not turn the snake');
+        manager.state = 'paused'; move(520, 500);
+        manager.state = 'playing'; move(700, 700);
+        assert.equal(turns.length, 4, 'paused mouse movement must not carry over');
+        move(700, 720, 'touch');
+        assert.equal(turns.length, 4, 'touch movement still uses the swipe handler');
+        listeners.get('pointerdown')({ clientX: 50, clientY: 50, pointerType: 'touch', pointerId: 1 });
+        listeners.get('pointerup')({ clientX: 50, clientY: 80, pointerType: 'touch' });
+        assert.equal(turns.at(-1), 'snakeDown');
+    } finally { globalThis.window = previousWindow; }
 });
 
 test('Input maps browser key codes to named actions and axes', () => {
