@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = 'amara-fantacy-game-v24';
+const CACHE_NAME = 'amara-fantacy-game-v27';
 const APP_FILES = [
     './', './index.html', './manifest.json', './README.md', './GAME_PLAN.md',
     './docs/ENGINE_API.md', './docs/SNAKE_LEVEL_SCHEMA.md', './css/style.css', './css/game-stage.css',

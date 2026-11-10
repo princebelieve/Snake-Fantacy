@@ -33,6 +33,7 @@ export class SnakeScene extends GameScene {
         this.rows = this.level.grid.rows;
         this.direction = this.level.direction || 'right';
         this.nextDirection = this.direction;
+        this.turnQueue = [];
         this.elapsed = 0;
         this.growthGlow = 0;
         this.stepTime = this.level.stepMs / 1000;
@@ -77,7 +78,7 @@ export class SnakeScene extends GameScene {
         this.updateBonusClock(dt, runtime);
         const input = runtime.input;
         const requested = ['up', 'down', 'left', 'right'].find(name => input.wasPressed(`snake${name[0].toUpperCase()}${name.slice(1)}`));
-        if (requested && requested !== this.opposite(this.direction)) this.nextDirection = requested;
+        if (requested) this.requestTurn(requested);
         this.elapsed += dt;
         while (this.elapsed >= this.stepTime && !this.dead && !this.completed) {
             this.elapsed -= this.stepTime;
@@ -123,7 +124,15 @@ export class SnakeScene extends GameScene {
         this.spawnBonus(runtime);
     }
 
+    requestTurn(direction) {
+        if (!DIRECTIONS[direction] || this.dead || this.completed) return;
+        const last = this.turnQueue.at(-1) || this.nextDirection;
+        if (direction === last || direction === this.opposite(last) || this.turnQueue.length >= 2) return;
+        this.turnQueue.push(direction);
+    }
+
     stepSnake(runtime) {
+        if (this.turnQueue.length) this.nextDirection = this.turnQueue.shift();
         this.direction = this.nextDirection;
         const vector = DIRECTIONS[this.direction];
         let head = { x: this.snake[0].x + vector.x, y: this.snake[0].y + vector.y };

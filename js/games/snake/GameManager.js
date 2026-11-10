@@ -60,6 +60,35 @@ export class GameManager {
             }
         });
         const canvas = this.runtime.canvas;
+        this.trackpadStroke = null;
+        window.addEventListener('wheel', this.handleTrackpadSwipe = event => {
+            if (event.ctrlKey || this.state !== 'playing' || this.ui.screens.get('game')?.hidden) {
+                this.trackpadStroke = null;
+                return;
+            }
+            // Two-finger touchpad swipes are wheel events, not pointer movements.
+            event.preventDefault();
+            const time = event.timeStamp;
+            if (!this.trackpadStroke || time - this.trackpadStroke.time > 160) {
+                this.trackpadStroke = { x: 0, y: 0, time };
+            }
+            const stroke = this.trackpadStroke;
+            const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 200 : 1;
+            const dx = event.deltaX * scale, dy = event.deltaY * scale;
+            const axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+            const sign = Math.sign(axis === 'x' ? dx : dy);
+            // A fresh stroke must not first cancel leftover movement from the last one.
+            if (stroke.axis !== axis || stroke.sign !== sign) { stroke.x = 0; stroke.y = 0; }
+            stroke.axis = axis; stroke.sign = sign;
+            stroke.x += dx;
+            stroke.y += dy;
+            stroke.time = time;
+            if (Math.max(Math.abs(stroke.x), Math.abs(stroke.y)) < 5) return;
+            const direction = Math.abs(stroke.x) > Math.abs(stroke.y)
+                ? (stroke.x > 0 ? 'Left' : 'Right') : (stroke.y > 0 ? 'Up' : 'Down');
+            this.steer(direction);
+            stroke.x = 0; stroke.y = 0;
+        }, { passive: false });
         this.mouseAnchor = null;
         window.addEventListener('pointermove', this.handleMouseMove = event => {
             if (event.pointerType !== 'mouse') return;
@@ -73,7 +102,7 @@ export class GameManager {
             // Ignore small hand tremors; every deliberate stroke chooses its dominant axis.
             if (Math.max(Math.abs(dx), Math.abs(dy)) < 6) return;
             const direction = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'Right' : 'Left') : (dy > 0 ? 'Down' : 'Up');
-            this.runtime.input.trigger(`snake${direction}`);
+            this.steer(direction);
             this.mouseAnchor = point;
         });
         window.addEventListener('mouseout', this.handleMouseLeave = event => {
@@ -116,6 +145,12 @@ export class GameManager {
             case 'turn': if (this.state === 'playing') this.runtime.input.trigger(`snake${value[0].toUpperCase()}${value.slice(1)}`); break;
             case 'sound': this.ui.setSoundState(this.soundManager.toggle()); break;
         }
+    }
+
+    steer(direction) {
+        if (this.state !== 'playing') return;
+        if (this.runtime.scene?.requestTurn) this.runtime.scene.requestTurn(direction.toLowerCase());
+        else this.runtime.input.trigger(`snake${direction}`);
     }
 
     openStory(levelId) {
@@ -191,6 +226,7 @@ export class GameManager {
     }
 
     startRuntime() {
+        this.trackpadStroke = null;
         this.mouseAnchor = null;
         this.soundManager.setMode?.('playing');
         this.soundManager.play('hiss');
@@ -260,6 +296,7 @@ export class GameManager {
     resumeGame() {
         if (this.state !== 'paused' || !this.runtime.running) return;
         this.state = 'playing';
+        this.trackpadStroke = null;
         this.mouseAnchor = null;
         this.soundManager.setMode?.('playing');
         this.ui.hideOverlays();
@@ -288,6 +325,7 @@ export class GameManager {
     }
 
     destroy() {
+        window.removeEventListener('wheel', this.handleTrackpadSwipe);
         window.removeEventListener('pointermove', this.handleMouseMove);
         window.removeEventListener('mouseout', this.handleMouseLeave);
         window.removeEventListener('blur', this.handleMouseBlur);

@@ -147,6 +147,22 @@ test('food at every board edge remains on canvas in small viewports and after re
     }
 });
 
+test('quick consecutive turns are applied on separate snake steps without losing the corner', () => {
+    const runtime = makeRuntime();
+    const scene = new SnakeScene({ ...snakeLevel, foods: [{ x: 10, y: 9 }] });
+    scene.enter(runtime);
+    scene.requestTurn('up');
+    scene.requestTurn('up');
+    scene.requestTurn('down');
+    scene.requestTurn('left');
+    assert.deepEqual(scene.turnQueue, ['up', 'left']);
+    scene.stepSnake(runtime);
+    assert.deepEqual(scene.snake[0], { x: 5, y: 4 });
+    scene.stepSnake(runtime);
+    assert.deepEqual(scene.snake[0], { x: 4, y: 4 });
+    assert.equal(scene.dead, false);
+});
+
 test('SnakeScene completes its configured food objective and reports victory', () => {
     const runtime = makeRuntime({ width: 600, height: 400 });
     let result = null;
@@ -423,6 +439,26 @@ test('mouse strokes steer without clicking, ignore jitter, and reset outside gam
         listeners.get('pointerdown')({ clientX: 50, clientY: 50, pointerType: 'touch', pointerId: 1 });
         listeners.get('pointerup')({ clientX: 50, clientY: 80, pointerType: 'touch' });
         assert.equal(turns.at(-1), 'snakeDown');
+        let prevented = 0, timeStamp = 0;
+        const swipe = (deltaX, deltaY, extra = {}) => windowListeners.get('wheel')({
+            deltaX, deltaY, deltaMode: 0, timeStamp: timeStamp += 200,
+            preventDefault() { prevented++; }, ...extra
+        });
+        const start = turns.length;
+        swipe(0, -30); swipe(30, 0); swipe(0, 30); swipe(-30, 0);
+        assert.deepEqual(turns.slice(start), ['snakeDown', 'snakeLeft', 'snakeUp', 'snakeRight']);
+        assert.equal(prevented, 4, 'touchpad steering must prevent page scrolling');
+        swipe(0, 30, { ctrlKey: true });
+        manager.state = 'ready'; swipe(0, 30);
+        manager.state = 'paused'; swipe(0, 30);
+        assert.equal(turns.length, start + 4, 'pinching, waiting and paused gestures must not steer');
+        assert.equal(prevented, 4);
+        manager.state = 'playing';
+        const smallStart = turns.length;
+        swipe(0, -3, { timeStamp: 2000 });
+        swipe(0, 3, { timeStamp: 2010 });
+        swipe(0, 3, { timeStamp: 2020 });
+        assert.deepEqual(turns.slice(smallStart), ['snakeUp'], 'small new strokes must not cancel against old scroll movement');
     } finally { globalThis.window = previousWindow; }
 });
 
